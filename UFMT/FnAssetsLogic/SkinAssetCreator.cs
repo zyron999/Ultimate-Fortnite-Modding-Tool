@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 using UAssetAPI;
 using UAssetAPI.ExportTypes;
 using UAssetAPI.PropertyTypes.Objects;
@@ -129,78 +130,95 @@ namespace UFMT.FnAssets
         internal static void CreateCharacterParts(string contentFolderPath, string gender, string codename, List<CharacterPart> characterParts, 
         FnVersion fnVersion, EngineVersion uassetApiEngineVersion, string ueSkinsPackagePath)
         {
-            string characterPartsPath = Path.Combine(contentFolderPath, "CharacterParts");
-            CharacterPart body = characterParts.FirstOrDefault(cp => cp.Type == "Body");
-            CharacterPart head = characterParts.FirstOrDefault(cp => cp.Type == "Head");
-            CharacterPart faceacc = characterParts.FirstOrDefault(cp => cp.Type == "Faceacc");
-            CharacterPart hat = characterParts.FirstOrDefault(cp => cp.Type == "Hat");
-            if (!Path.Exists(characterPartsPath)) Directory.CreateDirectory(characterPartsPath);
-
-            if (gender == "Female")
+            try
             {
-                body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uasset");
-                body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uexp");
-                head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uasset");
-                head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uexp");
-                if (faceacc != null)
+                string characterPartsPath = Path.Combine(contentFolderPath, "CharacterParts");
+                CharacterPart body = characterParts.FirstOrDefault(cp => cp.Type == "Body");
+                CharacterPart head = characterParts.FirstOrDefault(cp => cp.Type == "Head");
+                CharacterPart faceacc = characterParts.FirstOrDefault(cp => cp.Type == "Faceacc");
+                CharacterPart hat = characterParts.FirstOrDefault(cp => cp.Type == "Hat");
+                if (!Path.Exists(characterPartsPath)) Directory.CreateDirectory(characterPartsPath);
+
+                foreach (CharacterPart cp in characterParts)
                 {
-                    faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uasset"); ;
-                    faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uexp"); ;
+                    Log.Test($"{cp.Type} found in characterParts!");
                 }
-            }
-            else if (gender == "Male")
-            {
-                body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uasset");
-                body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uexp");
-                head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uasset");
-                head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uexp");
-                if (faceacc != null)
+
+                if (gender == "Female")
                 {
-                    faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uasset"); ;
-                    faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uexp"); ;
-                }
-            }
-
-            foreach (CharacterPart cp in characterParts)
-            {
-                Console.WriteLine($"Currently editing the {cp.Type} of the skin");
-                string uassetPath = Path.Combine(characterPartsPath,
-                $"CP_{cp.Type}_{codename}.uasset");
-                string uexpPath = Path.Combine(characterPartsPath,
-                $"CP_{cp.Type}_{codename}.uexp");
-
-                File.WriteAllBytes(uassetPath, cp.UassetFile);
-                File.WriteAllBytes(uexpPath, cp.UexpFile);
-
-                var currentCp = new UAsset(uassetPath, uassetApiEngineVersion);
-                var cpExport0 = (NormalExport)currentCp.Exports[0];
-                var cpExport1 = (NormalExport)currentCp.Exports[1];
-                cpExport1.ObjectName.Value.Value = $"CP_{cp.Type}_{codename}";
-                if (cp.Type != "Hat")
-                {
-                    string animBpPath;
-                    if (cp.Type == "Head")
+                    body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uasset");
+                    body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uexp");
+                    head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uasset");
+                    head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uexp");
+                    if (faceacc != null)
                     {
-                        if (fnVersion.Name == "9.41") animBpPath = $"/Game/Modding/Base_Head/Base_Head_Modding_AnimBP.Base_Head_Modding_AnimBP_C";
-                        else animBpPath = $"/Game/Base/Head/Skeleton/Base_Head_AnimBP.Base_Head_AnimBP_C";
+                        faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uasset");
+                        faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uexp");
                     }
-                    else animBpPath = $"{ueSkinsPackagePath}/{codename}/Meshes/{codename}_{cp.Type}_AnimBP.{codename}_{cp.Type}_AnimBP_C";
-
-                    var animBpData = (SoftObjectPropertyData)cpExport0["AnimClass"];
-                    animBpData.Value.AssetPath.AssetName.Value.Value = animBpPath;
-
-                    Console.WriteLine($"Changed the Animation Blueprint in CP_{cp.Type}_{codename} to {animBpPath}");
                 }
-                var mesh = (SoftObjectPropertyData)cpExport1["SkeletalMesh"];
-                mesh.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/Meshes/" +
-                $"{codename}_{cp.Type}.{codename}_{cp.Type}";
-                Console.WriteLine($"Changed the Mesh in CP_{cp.Type}_{codename} to {ueSkinsPackagePath}/{codename}/Meshes/" +
-                $"{codename}_{cp.Type}.{codename}_{cp.Type}");
+                else if (gender == "Male")
+                {
+                    body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uasset");
+                    body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uexp");
+                    head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uasset");
+                    head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uexp");
+                    if (faceacc != null)
+                    {
+                        faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uasset");
+                        faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uexp");
+                    }
+                }
 
-                Console.WriteLine(uassetPath);
-                currentCp.Write(uassetPath);
-                Log.Success($"Successfully edited CP_{cp.Type}_{codename}.uasset and " +
-                $"CP_{cp.Type}_{codename}.uexp");
+                if (hat != null)
+                {
+                    hat.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHat.uasset");
+                    hat.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHat.uexp");
+                }
+
+                foreach (CharacterPart cp in characterParts)
+                {
+                    Console.WriteLine($"Currently editing the {cp.Type} of the skin");
+                    string uassetPath = Path.Combine(characterPartsPath,
+                    $"CP_{cp.Type}_{codename}.uasset");
+                    string uexpPath = Path.Combine(characterPartsPath,
+                    $"CP_{cp.Type}_{codename}.uexp");
+
+                    File.WriteAllBytes(uassetPath, cp.UassetFile);
+                    File.WriteAllBytes(uexpPath, cp.UexpFile);
+
+                    var currentCp = new UAsset(uassetPath, uassetApiEngineVersion);
+                    var cpExport0 = (NormalExport)currentCp.Exports[0];
+                    var cpExport1 = (NormalExport)currentCp.Exports[1];
+                    cpExport1.ObjectName.Value.Value = $"CP_{cp.Type}_{codename}";
+                    if (cp.Type != "Hat")
+                    {
+                        Log.Test($"Cp type was not hat! it was {cp.Type}");
+                        string animBpPath;
+                        if (cp.Type == "Head")
+                        {
+                            if (fnVersion.Name == "9.41") animBpPath = $"/Game/Modding/Base_Head/Base_Head_Modding_AnimBP.Base_Head_Modding_AnimBP_C";
+                            else animBpPath = $"/Game/Base/Head/Skeleton/Base_Head_AnimBP.Base_Head_AnimBP_C";
+                        }
+                        else animBpPath = $"{ueSkinsPackagePath}/{codename}/Meshes/{codename}_{cp.Type}_AnimBP.{codename}_{cp.Type}_AnimBP_C";
+
+                        var animBpData = (SoftObjectPropertyData)cpExport0["AnimClass"];
+                        animBpData.Value.AssetPath.AssetName.Value.Value = animBpPath;
+
+                        Console.WriteLine($"Changed the Animation Blueprint in CP_{cp.Type}_{codename} to {animBpPath}");
+                    }
+                    var mesh = (SoftObjectPropertyData)cpExport1["SkeletalMesh"];
+                    mesh.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/Meshes/{codename}_{cp.Type}.{codename}_{cp.Type}";
+                    Console.WriteLine($"Changed the Mesh in CP_{cp.Type}_{codename} to {ueSkinsPackagePath}/{codename}/Meshes/{codename}_{cp.Type}.{codename}_{cp.Type}");
+
+                    Console.WriteLine(uassetPath);
+                    currentCp.Write(uassetPath);
+                    Log.Success($"Successfully edited CP_{cp.Type}_{codename}.uasset and " +
+                    $"CP_{cp.Type}_{codename}.uexp");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.ToString());
             }
         }
 
