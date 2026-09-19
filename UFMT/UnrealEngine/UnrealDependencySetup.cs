@@ -7,7 +7,7 @@ namespace UFMT.UnrealEngine
 {
     internal static class UnrealDependencySetup
     {
-        internal static void CreateMissingFiles(string ueProjectPath, string codename, string ueBaseHeadPath, string cookedCodenamePath, string UeVersionNumber, 
+        internal static void CreateMissingFiles(string ueProjectPath, string ueBaseHeadPath, string cookedCodenamePath, string UeVersionNumber, 
         string[] baseHeadFileNames)
         {
             string fakeCIDTemplatePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content",
