@@ -40,7 +40,8 @@ try:
     obj = next((o for o in bpy.context.scene.objects if o.type == 'MESH'), None)
 
     if not obj or not obj.data or not obj.data.shape_keys:
-        raise RuntimeError(f"No mesh with shape keys found in: {fbx_file_path}")
+        print(f"No mesh with shape keys found in: {fbx_file_path}.")
+        sys.exit(0)
 
     bpy.ops.object.select_all(action='DESELECT')
     obj.select_set(True)
