@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UFMT.Core;
 using UFMT.UI;
+using Windows.Security.Authentication.OnlineId;
 
 namespace UFMT.FnAssetsLogic
 {
@@ -99,6 +100,60 @@ namespace UFMT.FnAssetsLogic
             if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}-L", true)) return false;
 
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath), eid, true)) return false;
+            return true;
+        }
+
+        internal static bool ValidateBeforeExportProcess(string ueEmotesPackagePath, string ueProjectPath, string ueExecutablePath, string name, string description, 
+        string rarity, string[] validRarities)
+        {
+            if (!ueEmotesPackagePath.StartsWith("/Game/"))
+            {
+                Log.Error($"\"{ueEmotesPackagePath}\" is not a valid Unreal package path, it must start with /Game/");
+                return false;
+            }
+
+            if (!File.Exists(ueProjectPath))
+            {
+                Log.Error($"\"{ueProjectPath}\" does not exist or is not a valid .uproject file!");
+                return false;
+            }
+
+            if (!ueProjectPath.EndsWith(".uproject"))
+            {
+                Log.Error($"\"{ueProjectPath}\" is not a .uproject file!");
+                return false;
+            }
+
+            if (!File.Exists(ueExecutablePath))
+            {
+                Log.Error($"\"{ueExecutablePath}\" does not exist or is not a valid .exe file!");
+                return false;
+            }
+
+            if (!ueExecutablePath.EndsWith(".exe"))
+            {
+                Log.Error($"\"{ueExecutablePath}\" is not an .exe file!");
+                return false;
+            }
+
+            if (name == string.Empty)
+            {
+                Log.Error("Emote name cannot be empty!");
+                return false;
+            }
+
+            if (description == string.Empty)
+            {
+                Log.Error("Emote description cannot be empty!");
+                return false;
+            }
+
+            if (!validRarities.Contains(rarity))
+            {
+                Log.Error($"{rarity} is not a valid rarity!"); // If the user loads a JSON with unrecognized rarity? idk this check is just in case
+                return false;
+            }
+
             return true;
         }
 
