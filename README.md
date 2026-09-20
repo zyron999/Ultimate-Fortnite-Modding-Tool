@@ -9,11 +9,11 @@ A modding tool for importing the latest Fortnite assets to older Fortnite builds
 - **Automatic Physics Asset generation** — Converts exported .json physics asset(s) file(s) to physics assets using Physics Importer (All credits go to JsonAsAsset - More listed below)
 - **Automatic texture assignment** — Connects exported textures with their corresponding materials, with manual override options if needed
 - **Real-time preview rendering** — Render a preview of your skin before export (Note: The preview won't be 100% accurate since Blender is a different rendering engine than Unreal Engine)
-- **Automatic asset generation** — Automatically generates all required Fortnite cosmetic assets (CID, HID, HS, CPs) and modifies them for game compatibility
-- **AssetRegistry generation** — Creates the AssetRegistry.bin file so Fortnite recognizes your custom skin
+- **Automatic asset generation** — Automatically generates all required Fortnite cosmetic assets (CID, EID, Animation montages, Sound cues, HID, HS, CPs) and modifies them for game compatibility
+- **AssetRegistry generation** — Creates the AssetRegistry.bin file so Fortnite recognizes your custom cosmetics
 - **Official Engine Support** — Compatible with standard Unreal Engine versions (no custom FnGameProj builds required). See compatible versions below.
-- **Automatic packing** — u4Pak is not required, you can find the .pak next to FortniteGame folder in `[skin codename]\[Fortnite Version]\Output`
-- **Fast workflow** — Backport a custom skin in under 1 minute
+- **Automatic packing** — u4Pak is not required, you can find the .pak next to FortniteGame folder in `[cosmetic codename]\[Fortnite Version]\Output`
+- **Fast workflow** — Backport a custom cosmetic in under 1 minute
 
 ## Requirements
 
@@ -59,15 +59,26 @@ Open Unreal Engine, create a new project, then go to Edit → Plugins and enable
 
 ### Setup
 
-1. Create a folder anywhere on your pc, that will contain your skin folders
-2. Click **"Create Skin Folder"** and enter your skin's codename (e.g., `QuarterClaspZoom` from the Character ID)
-3. Place your exported .psk meshes in `[skin codename]\Source\Meshes\[mesh character part type]` (eg. if your mesh is a body, place it in [skin codename]\Source\Meshes\Body)
-4. Place your exported .psa lobby pose in `[skin codename]\Source\Lobby_Animation` (if your skin has one) and .json if the pose has custom facial animations
-5. Place textures and icons in `[skin codename]\Source\Textures\`
-6. Place .json Physics Assets in `[skin codename]\Source\Physics\[mesh character part type]`
+SKINS
+1. Go to Skins page
+2. Create a folder anywhere on your pc, that will contain your skin folders
+3. Click **"Create Skin Folder"** and enter your skin's codename (e.g., `QuarterClaspZoom` from the Character ID)
+4. Place your exported .psk meshes in `[skin codename]\Source\Meshes\[mesh character part type]` (eg. if your mesh is a body, place it in [skin codename]\Source\Meshes\Body)
+5. Place your exported .psa lobby pose in `[skin codename]\Source\Lobby_Animation` (if your skin has one) and .json if the pose has custom facial animations
+6. Place textures and icons in `[skin codename]\Source\Textures\`
+7. Place .json Physics Assets in `[skin codename]\Source\Physics\[mesh character part type]`
+
+EMOTES
+1. Go to Emotes page
+2. Create a folder anywhere on your pc, that will contain your emote folders
+3. Click **"Create Emote Folder"** and enter your emote's codename (e.g., `JanuaryBop` from the Emote ID)
+4. Place your exported animations' .psa and .json files in `[emote codename]\Source\Animations\` (make sure to keep the animation names unchanged from their original names when exported from FModel)
+5. Place your exported .wav sound/music in `[emote codename]\Source\Sound`
+6. Place your exported icons in `[emote codename]\Source\Icons\`
 
 ### Configure & Preview
 
+SKINS
 1. Specify your skin folder path in **"Current Skin Path"**
 2. The program auto-detects materials and assigns textures (may have issues with reskins)
 3. Manually adjust texture assignments if needed using the dropdowns
@@ -76,15 +87,23 @@ Open Unreal Engine, create a new project, then go to Edit → Plugins and enable
 6. Click **"Render"** to preview the skin
 7. If the skin looks too shiny, enable **"Swizzle Roughness to Green"** (This usually happens on skins that were made after chapter 4, due to Engine version switch)
 
+EMOTES
+1. Specify your emote folder path in **"Current Emote Path"**
+2. The program auto-detects animation length and icons
+3. Manually adjust animation length if the emote doesn't use the full animation length
+4. Check emote animation montages in FModel if they have a different frame position for loop section (e.g "Jabba's Switchway" uses 2,5684574 instead of 0)
+5. Check the emote sound wave compression quality in FModel and set the same value in UFMT.
+6. Enter emote details: **name**, **description**, **rarity**, **series**
+
 ### Export & Deploy
 
 1. Click **"Export"**
 2. The program will:
-   - Convert .psk files to .fbx in Blender
+   - Convert .psk and .psa files to .fbx in Blender
    - Import meshes, textures and animations into Unreal Engine and apply correct settings to them
    - Generate all required cosmetic files
    - Create AssetRegistry.bin for game recognition
-3. Your finished skin will be in `[skin codename]\[Fortnite Version]\Output\z_[skin codename].pak` (eg. If you're doing the skin for Fortnite 14.30, the FortniteGame folder will be in `[skin codename]\14.30\Output`)
+3. Your finished cosmetic will be in `[cosmetic codename]\[Fortnite Version]\Output\z_[cosmetic codename].pak` (eg. If you're doing a cosmetic for Fortnite 14.30, the FortniteGame folder will be in `[cosmetic codename]\14.30\Output`)
 4. Move the .pak to your Fortnite build Paks folder (`[Path To Your Fortnite Build]\FortniteGame\Content\Paks`), copy any .sig file from that folder and rename it the same as your custom .pak, then launch the game!
 
 **Note:** The export process may take a minute as Blender and UE scripts run in the background (export time varies depending on PC specs; typical systems take 15-30 seconds). Wait until the console displays "Your custom skin is ready! Check the output folder"
