@@ -74,5 +74,49 @@ namespace UFMT.FnAssetsLogic
             currentEmote.Codename = codename;
             return true;
         }
+
+        internal static bool ValidateAfterUeImport(string ueProjectPath, string ueEmotesOsPath, string codename, string smallIcon, string largeIcon, string eid)
+        {
+            string contentCurrentEmotePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", ueEmotesOsPath, codename);
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Sound"), $"{codename}_Sound", false)) return false;
+
+            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}", false)) return false;
+            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}-L", false)) return false;
+
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath), eid, false)) return false;
+            return true;
+        }
+
+        internal static bool ValidateAfterUeCook(string cookedCurrentEmotePath, string codename, string smallIcon, string largeIcon, string eid)
+        {
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", true)) return false;
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", true)) return false;
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Sound"), $"{codename}_Sound", true)) return false;
+
+            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}", true)) return false;
+            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}-L", true)) return false;
+
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath), eid, true)) return false;
+            return true;
+        }
+
+        private static bool FindUeAssetFiles(string cookedAssetPath, string fileName, bool checkForUexpFiles)
+        {
+            string uassetFilePath = Path.Combine(cookedAssetPath, Path.ChangeExtension(fileName, ".uasset"));
+            string uexpFilePath = Path.ChangeExtension(uassetFilePath, ".uexp");
+            if (!File.Exists(uassetFilePath))
+            {
+                Log.Error($"Can't find {uassetFilePath}");
+                return false;
+            }
+            if (!File.Exists(uexpFilePath) && checkForUexpFiles)
+            {
+                Log.Error($"Can't find {uexpFilePath}");
+                return false;
+            }
+            return true;
+        }
     }
 }

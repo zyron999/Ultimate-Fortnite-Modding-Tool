@@ -138,14 +138,11 @@ namespace UFMT.UI
 
                 (string largeIcon, string smallIcon) = TextureCategorizer.GetIconTextures(CurrentEmote.IconsPath, "emote");
                 if (largeIcon == null || smallIcon == null) return;
-                CurrentEmote.LargeIcon = $"{largeIcon}.png";
-                CurrentEmote.SmallIcon = $"{smallIcon}.png";
+                if (largeIcon != string.Empty) CurrentEmote.LargeIcon = $"{largeIcon}.png";
+                if (smallIcon != string.Empty) CurrentEmote.SmallIcon = $"{smallIcon}.png";
 
-                CurrentEmote.MaleAnimationLength = PsaReader.GetAnimationLength(Path.Combine(CurrentEmote.AnimationsPath, CurrentEmote.MaleAnimationPsa));
-                CurrentEmote.FemaleAnimationLength = PsaReader.GetAnimationLength(Path.Combine(CurrentEmote.AnimationsPath, CurrentEmote.FemaleAnimationPsa));
-
-                CurrentEmote.MaleAnimationLength = Math.Round(CurrentEmote.MaleAnimationLength / 30.0, 6);
-                CurrentEmote.FemaleAnimationLength = Math.Round(CurrentEmote.FemaleAnimationLength / 30.0, 6);
+                CurrentEmote.MaleAnimationLength = Math.Round(PsaReader.GetAnimationLength(Path.Combine(CurrentEmote.AnimationsPath, CurrentEmote.MaleAnimationPsa)) / 30.0, 6);
+                CurrentEmote.FemaleAnimationLength = Math.Round(PsaReader.GetAnimationLength(Path.Combine(CurrentEmote.AnimationsPath, CurrentEmote.FemaleAnimationPsa)) / 30.0, 6);
 
                 CurrentEmote.EID = $"EID_{CurrentEmote.Codename}";
                 CurrentEmote.OutputContentPath = Path.Combine(CurrentEmote.Path, "Output", "FortniteGame", "Content");
@@ -389,34 +386,61 @@ namespace UFMT.UI
         }
         private async void ExportButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!App.Settings.UeEmotesPackagePath.StartsWith("/Game/"))
+            {
+                Log.Error($"\"{App.Settings.UeEmotesPackagePath}\" is not a valid Unreal package path, it must start with /Game/");
+                return;
+            }
+
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
             string ueEmotesOsPath = ueEmotesPackagePath.Substring(6, ueEmotesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
 
             CurrentEmote.MaleAnimationFbx = $"Emote_{CurrentEmote.Codename}_CMM.fbx";
             CurrentEmote.FemaleAnimationFbx = $"Emote_{CurrentEmote.Codename}_CMF.fbx";
             PrintAllValues(CurrentEmote);
-            return;
             string cookedCurrentEmotePath = Path.Combine(CookedAssetsPath, ueEmotesOsPath, CurrentEmote.Codename);
             string OutputFnGameCurrentEmoteFolder = Path.Combine(OutputFnGamePath, "Content", ueEmotesOsPath, CurrentEmote.Codename);
 
-            await FbxConverter.ConvertPsaToFbx(Path.Combine(CurrentEmote.SourcePath, "Animations", CurrentEmote.MaleAnimationPsa),
-            Path.Combine(CurrentEmote.SourcePath, "Fbx", "Animations", CurrentEmote.MaleAnimationFbx));
+            if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(CurrentEmote.SourcePath, "Animations", CurrentEmote.MaleAnimationPsa),
+            Path.Combine(CurrentEmote.SourcePath, "Fbx", "Animations", CurrentEmote.MaleAnimationFbx))) return;
 
-            await FbxConverter.ConvertPsaToFbx(Path.Combine(CurrentEmote.SourcePath, "Animations", CurrentEmote.FemaleAnimationPsa),
-            Path.Combine(CurrentEmote.SourcePath, "Fbx", "Animations", CurrentEmote.FemaleAnimationFbx));
+            if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(CurrentEmote.SourcePath, "Animations", CurrentEmote.FemaleAnimationPsa),
+            Path.Combine(CurrentEmote.SourcePath, "Fbx", "Animations", CurrentEmote.FemaleAnimationFbx))) return;
 
             UnrealExportEmoteData unrealData = UnrealExportDataCollector.CollectEmoteData(CurrentEmote, ueEmotesPackagePath, CurrentUeVersion.Name);
 
-            Log.Test(unrealData.MaleAnimationFbxPath);
-            Log.Test(unrealData.Codename);
+            UnrealDependencySetup.CreateMissingFiles(App.Settings.UeProjectPath, CurrentUeVersion.BaseHeadPath, cookedCurrentEmotePath, CurrentUeVersion.Name,
+            CurrentUeVersion.BaseHeadFileNames);
+
             string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportEmoteData);
 
             Log.Test($"{jsonString}");
             await UnrealProcessRunner.LaunchUnreal(jsonString, App.Settings.UeProjectPath, App.Settings.UeExecutablePath, "emote");
+
+            if (!EmoteValidator.ValidateAfterUeImport(App.Settings.UeProjectPath, ueEmotesOsPath, CurrentEmote.Codename, CurrentEmote.SmallIcon, CurrentEmote.LargeIcon, CurrentEmote.EID))
+            {
+                Log.Error($"Unreal Engine import process failed!");
+                return;
+            }
+
             await UnrealProcessRunner.CookFiles(App.Settings.UeProjectPath, App.Settings.UeExecutablePath);
+
+            if (!EmoteValidator.ValidateAfterUeCook(cookedCurrentEmotePath, CurrentEmote.Codename, CurrentEmote.SmallIcon, CurrentEmote.LargeIcon, CurrentEmote.EID))
+            {
+                Log.Error($"Unreal Engine cook process failed!");
+                return;
+            }
+
+            if (!Directory.Exists(cookedCurrentEmotePath))
+            {
+                Log.Error($"\"{cookedCurrentEmotePath}\" does not exist or is not a directory!");
+                return;
+            }
+
             CurrentUeVersion.FixRequiredFiles([Path.Combine(cookedCurrentEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(CurrentEmote.MaleAnimationFbx)}.uasset"),
             Path.Combine(cookedCurrentEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(CurrentEmote.FemaleAnimationFbx)}.uasset")], [string.Empty]);
             AssetRegistryBuilder.CreateAssetRegistry(CookedAssetsPath, CurrentUeVersion.Name, OutputFnGamePath, App.Settings.UeSkinsPackagePath, ueEmotesPackagePath, CurrentEmote.Path);
+
             EmoteAssetCreator.CopyFilesFromUe(OutputFnGameCurrentEmoteFolder, new DirectoryInfo(cookedCurrentEmotePath));
             EmoteAssetCreator.CreateAnimationMontage(OutputFnGameCurrentEmoteFolder, Path.GetFileNameWithoutExtension(CurrentEmote.MaleAnimationFbx),
             (float)CurrentEmote.MaleAnimationLength, CurrentFnVersion, CurrentUeVersion, ueEmotesPackagePath, CurrentEmote.Codename, CurrentEmote.MaleAnimationJson, 
