@@ -69,6 +69,12 @@ namespace UFMT.UnrealEngine
 
         internal static UnrealExportEmoteData CollectEmoteData(EmoteData currentEmote, string emotePackagePath, string unrealEngineVersion)
         {
+            List<string> iconTexturePaths = new List<string>();
+            iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.SmallIcon));
+            iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.LargeIcon));
+            if (currentEmote.SmallIcon == string.Empty) iconTexturePaths[0] = string.Empty;
+            if (currentEmote.LargeIcon == string.Empty) iconTexturePaths[1] = string.Empty;
+
             var unrealData = new UnrealExportEmoteData()
             {
                 MaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.MaleAnimationFbx),
@@ -79,7 +85,7 @@ namespace UFMT.UnrealEngine
                 FemaleAnimationLength = currentEmote.FemaleAnimationLength,
                 SoundWavPath = Path.Combine(currentEmote.SoundPath, currentEmote.SoundWav),
                 SoundWavCompressionQuality = currentEmote.SoundWavCompressionQuality,
-                IconTexturePaths = [Path.Combine(currentEmote.IconsPath, currentEmote.SmallIcon), Path.Combine(currentEmote.IconsPath, currentEmote.LargeIcon)],
+                IconTexturePaths = iconTexturePaths.ToArray(),
                 Codename = currentEmote.Codename,
                 EID = currentEmote.EID,
                 UeEmotesPackagePath = emotePackagePath,

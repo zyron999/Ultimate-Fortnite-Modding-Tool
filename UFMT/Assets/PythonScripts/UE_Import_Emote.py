@@ -176,11 +176,11 @@ def import_sound(wav_path):
     else:
         unreal.log_error("FAILED => Could not import sound: {}".format(wav_path))
 
-def import_icon_texture(texture_path):
+def import_icon_texture(texture_path, destination_name):
     task                  = unreal.AssetImportTask()
     task.filename         = texture_path
     task.destination_path = icons_destination_path
-    task.destination_name = os.path.splitext(os.path.basename(texture_path))[0]
+    task.destination_name = destination_name
     task.replace_existing = True
     task.automated        = True
     task.save             = False
@@ -212,9 +212,10 @@ if female_animation_fbx_path != "":
 if sound_wav_path:
     import_sound(sound_wav_path)
 
-for i in range(len(icon_textures)):
-    if icon_textures[i] != "":
-        import_icon_texture(icon_textures[i])
+if icon_textures[0] != "":
+    import_icon_texture(icon_textures[0], "T-Icon-Emotes-E-{}".format(code_name))
+if icon_textures[1] != "":
+    import_icon_texture(icon_textures[1], "T-Icon-Emotes-E-{}-L".format(code_name))
 
 create_fake_eid()
 
