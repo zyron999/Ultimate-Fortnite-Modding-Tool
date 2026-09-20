@@ -118,7 +118,7 @@ EMOTES
 Join the Discord server for help and more info
 <p align="left">
   <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" width="28" align="middle" alt="Discord Logo">&nbsp;&nbsp;
-  <a href="https://discord.gg/YOUR_INVITE_CODE">Join our Discord Server</a>
+  <a href="https://discord.gg/z74WCJS5N">Join our Discord Server</a>
 </p>
 
 ## Credits
