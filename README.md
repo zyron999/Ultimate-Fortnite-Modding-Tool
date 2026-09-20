@@ -114,6 +114,13 @@ EMOTES
 - **Fortnite Versions:** v8.51, v9.10, v9.41, v12.41, v13.40, v14.30
 - **Blender:** 5.0
 
+## Discord Server
+Join the Discord server for help and more info
+<p align="left">
+  <img src="https://cdn-icons-png.flaticon.com/512/5968/5968756.png" width="28" align="middle" alt="Discord Logo">&nbsp;&nbsp;
+  <a href="https://discord.gg/YOUR_INVITE_CODE">Join our Discord Server</a>
+</p>
+
 ## Credits
 - **[UAssetAPI](https://github.com/atenfyr/UAssetAPI)** — Asset handling and parsing library
 - **WinUI 3** — UI framework
