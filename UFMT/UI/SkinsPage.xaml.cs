@@ -353,7 +353,6 @@ namespace UFMT.UI
 
             if (exportSkin.LobbyAnimationPsa != string.Empty)
             {
-                Log.Test("Getting length");
                 bool isAnimValid = await FbxConverter.ConvertPsaToFbx(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationPsa}.psa"),
                 Path.Combine(exportSkin.SourcePath, "Fbx", "Lobby_Animation", $"{exportSkin.Codename}_Lobby_Animation.fbx"));
                 if (!isAnimValid) return;
@@ -361,7 +360,6 @@ namespace UFMT.UI
                 exportSkin.LobbyAnimationLength = (float)PsaReader.GetAnimationLength(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationPsa}.psa")) / 30f;
             }
             string cookedCodenamePath = Path.Combine(exportCookedAssetsPath, ueSkinsOsPath, exportSkin.Codename);
-            Log.Test($"Animation Length is {exportSkin.LobbyAnimationLength}");
 
             UnrealDependencySetup.CreateMissingFiles(exportUeProjectPath, exportUeVer.BaseHeadPath, cookedCodenamePath, exportUeVer.Name,
             exportUeVer.BaseHeadFileNames);

@@ -17,7 +17,6 @@ namespace UFMT.UnrealEngine
         {
             string tempJsonPath = Path.Combine(Path.GetTempPath(), "ue_import_data.json");
             File.WriteAllText(tempJsonPath, unrealDataInJsonString, new System.Text.UTF8Encoding(false));
-            Log.Test($"tempJsonPath is {tempJsonPath}");
 
             string scriptPath = cosmeticType == "skin" ? SkinPythonScriptPath : EmotePythonScriptPath;
             string arguments = $"\"{ueProjectPath}\" -run=PythonScriptCommandlet -script=\"{scriptPath}\" -NullRHI -NoWindow -Silent";

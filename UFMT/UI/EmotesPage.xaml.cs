@@ -295,7 +295,6 @@ namespace UFMT.UI
         }
         public void SaveEmoteConfig()
         {
-            Log.Test("Save Emote config called!");
             if (CurrentEmote == null || string.IsNullOrEmpty(CurrentEmote.Path)) return;
 
             string jsonPath = Path.Combine(CurrentEmote.Path, $"{CurrentEmote.Codename}_Settings.json");
@@ -408,7 +407,6 @@ namespace UFMT.UI
 
             exportEmote.MaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMM.fbx";
             exportEmote.FemaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMF.fbx";
-            PrintAllValues(exportEmote);
             string cookedexportEmotePath = Path.Combine(cookedAssetsPath, ueEmotesOsPath, exportEmote.Codename);
             string OutputFnGameexportEmoteFolder = Path.Combine(outputFnGamePath, "Content", ueEmotesOsPath, exportEmote.Codename);
 
@@ -425,7 +423,6 @@ namespace UFMT.UI
 
             string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportEmoteData);
 
-            Log.Test($"{jsonString}");
             await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "emote");
 
             if (!EmoteValidator.ValidateAfterUeImport(ueProjectPath, ueEmotesOsPath, exportEmote.Codename, exportEmote.SmallIcon, exportEmote.LargeIcon, exportEmote.EID))

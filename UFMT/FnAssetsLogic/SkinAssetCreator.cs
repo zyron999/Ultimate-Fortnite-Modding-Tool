@@ -139,11 +139,6 @@ namespace UFMT.FnAssets
                 CharacterPart hat = characterParts.FirstOrDefault(cp => cp.Type == "Hat");
                 if (!Path.Exists(characterPartsPath)) Directory.CreateDirectory(characterPartsPath);
 
-                foreach (CharacterPart cp in characterParts)
-                {
-                    Log.Test($"{cp.Type} found in characterParts!");
-                }
-
                 if (gender == "Female")
                 {
                     body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uasset");
@@ -192,7 +187,6 @@ namespace UFMT.FnAssets
                     cpExport1.ObjectName.Value.Value = $"CP_{cp.Type}_{codename}";
                     if (cp.Type != "Hat")
                     {
-                        Log.Test($"Cp type was not hat! it was {cp.Type}");
                         string animBpPath;
                         if (cp.Type == "Head")
                         {
@@ -218,7 +212,7 @@ namespace UFMT.FnAssets
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                Log.Error(ex.Message);
             }
         }
 

@@ -129,7 +129,7 @@ namespace UFMT.FnAssets
 
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                Log.Error(ex.Message);
             }
         }
 
