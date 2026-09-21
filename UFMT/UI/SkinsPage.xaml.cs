@@ -1,4 +1,3 @@
-#pragma warning disable
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -14,7 +13,6 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using UAssetAPI;
 using UFMT.AssetRegistry;
 using UFMT.Blender;
 using UFMT.Core;
@@ -405,14 +403,14 @@ namespace UFMT.UI
 
         private void SmallIcon_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (CurrentSkin.SmallIcon == null || (sender as ComboBox)?.ItemsSource == null) return;
-            CurrentSkin.SmallIcon = (sender as ComboBox).SelectedItem.ToString();
+            if (CurrentSkin == null || CurrentSkin.SmallIcon == null || (sender as ComboBox)?.Items == null) return;
+            CurrentSkin.SmallIcon = (sender as ComboBox).SelectedItem?.ToString();
             Console.WriteLine($"Changed the small icon to {CurrentSkin.SmallIcon}");
         }
         private void LargeIcon_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (CurrentSkin.LargeIcon == null || (sender as ComboBox)?.ItemsSource == null) return;
-            CurrentSkin.LargeIcon = (sender as ComboBox).SelectedItem.ToString();
+            if (CurrentSkin == null || CurrentSkin.LargeIcon == null || (sender as ComboBox)?.Items == null) return;
+            CurrentSkin.LargeIcon = (sender as ComboBox).SelectedItem?.ToString();
             Console.WriteLine($"Changed the large icon to {CurrentSkin.LargeIcon}");
         }
         private async void CreateSkinFolder_Click
