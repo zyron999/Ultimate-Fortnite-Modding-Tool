@@ -345,6 +345,8 @@ namespace UFMT.UI
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
             string ueSkinsOsPath = ueSkinsPackagePath.Substring(6, ueSkinsPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
+            string ueProjectPath = App.Settings.UeProjectPath;
+            string ueExecutablePath = App.Settings.UeExecutablePath;
 
             if (!SkinValidator.ValidateBeforeExport(exportUeVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
@@ -368,7 +370,22 @@ namespace UFMT.UI
 
             string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportSkinData);
             await UnrealProcessRunner.LaunchUnreal(jsonString, exportUeProjectPath, exportUeExecutablePath, "skin");
+
+            if (!SkinValidator.ValidateAfterUeImport(ueProjectPath, ueSkinsOsPath, exportSkin.Codename, unrealData.DiffuseTextures, unrealData.MaskTextures, unrealData.NormalTextures,
+            unrealData.SpecularTextures, unrealData.Materials, unrealData.MeshNames, exportSkin.SmallIcon, exportSkin.LargeIcon, exportSkin.LobbyAnimationFbx, exportSkin.CID))
+            {
+                Log.Error($"Unreal Engine import process failed!");
+                return;
+            }
+
             await UnrealProcessRunner.CookFiles(exportUeProjectPath, exportUeExecutablePath);
+
+            if (!SkinValidator.ValidateAfterUeCook(cookedCodenamePath, exportSkin.Codename, unrealData.DiffuseTextures, unrealData.MaskTextures, unrealData.NormalTextures,
+            unrealData.SpecularTextures, unrealData.Materials, unrealData.MeshNames, exportSkin.SmallIcon, exportSkin.LargeIcon, exportSkin.LobbyAnimationFbx, exportSkin.CID))
+            {
+                Log.Error($"Unreal Engine cook process failed!");
+                return;
+            }
 
             exportUeVer.FixRequiredFiles([Path.Combine
             (cookedCodenamePath, "Animations", $"{exportSkin.Codename}_Lobby_Animation.uasset")], exportSkin.CharacterParts.Select

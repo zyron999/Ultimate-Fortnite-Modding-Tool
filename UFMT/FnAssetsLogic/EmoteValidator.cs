@@ -79,6 +79,11 @@ namespace UFMT.FnAssetsLogic
         internal static bool ValidateAfterUeImport(string ueProjectPath, string ueEmotesOsPath, string codename, string smallIcon, string largeIcon, string eid)
         {
             string contentCurrentEmotePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", ueEmotesOsPath, codename);
+            if (!Path.Exists(contentCurrentEmotePath))
+            {
+                Log.Error($"{contentCurrentEmotePath} does not exist!");
+                return false;
+            }
             if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", false)) return false;
             if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", false)) return false;
             if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Sound"), $"{codename}_Sound", false)) return false;
@@ -92,6 +97,11 @@ namespace UFMT.FnAssetsLogic
 
         internal static bool ValidateAfterUeCook(string cookedCurrentEmotePath, string codename, string smallIcon, string largeIcon, string eid)
         {
+            if (!Path.Exists(cookedCurrentEmotePath))
+            {
+                Log.Error($"{cookedCurrentEmotePath} does not exist!");
+                return false;
+            }
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", true)) return false;
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", true)) return false;
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Sound"), $"{codename}_Sound", true)) return false;
