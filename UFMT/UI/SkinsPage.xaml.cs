@@ -29,7 +29,6 @@ namespace UFMT.UI
     {
         public static FnVersion CurrentFnVersion = FnVersionsData.FnVersions.GetValueOrDefault(App.Settings.FnVersion);
         public static UeVersion CurrentUeVersion = UeVersionsData.UeVersions.GetValueOrDefault(App.Settings.UeVersion);
-        private static string PhysicsImporterPath;
         private string CookedAssetsPath;
         private static readonly string ValidCodenameCharacters = "abcdefghijklmnopqrstuvwxyz1234567890_";
         public string PreviouslySelectedSeries = "None";
@@ -141,7 +140,6 @@ namespace UFMT.UI
                 Ch1PreviewViewBox.Visibility = Visibility.Collapsed;
                 Ch2PreviewViewBox.Visibility = Visibility.Visible;
             }
-            PhysicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{CurrentUeVersion.Name}.zip");
             Body = new CharacterPart
             {
                 Type = "Body",
@@ -164,9 +162,6 @@ namespace UFMT.UI
 
             CookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
             "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(App.Settings.UeProjectPath), "Content");
-
-            string pluginsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath), "Plugins", "PhysicsImporter");
-            if (!Path.Exists(pluginsPath)) ZipFile.ExtractToDirectory(PhysicsImporterPath, pluginsPath);
 
             if (CurrentUeVersion.ReplaceDefaultEngineIni)
             {
@@ -347,6 +342,8 @@ namespace UFMT.UI
             string ueSkinsOsPath = ueSkinsPackagePath.Substring(6, ueSkinsPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
             string ueProjectPath = App.Settings.UeProjectPath;
             string ueExecutablePath = App.Settings.UeExecutablePath;
+            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
+            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{exportUeVer.Name}.zip");
 
             if (!SkinValidator.ValidateBeforeExport(exportUeVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
@@ -361,8 +358,8 @@ namespace UFMT.UI
             }
             string cookedCodenamePath = Path.Combine(exportCookedAssetsPath, ueSkinsOsPath, exportSkin.Codename);
 
-            UnrealDependencySetup.CreateMissingFiles(exportUeProjectPath, exportUeVer.BaseHeadPath, cookedCodenamePath, exportUeVer.Name,
-            exportUeVer.BaseHeadFileNames);
+            if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(exportUeProjectPath, exportUeVer.BaseHeadPath, cookedCodenamePath, exportUeVer.Name,
+            exportUeVer.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
 
             UnrealExportSkinData unrealData = UnrealExportDataCollector.CollectSkinData(exportSkin.SmallIcon, exportSkin.LargeIcon, exportSkin.Materials, exportSkin.TexturesPath,
             exportFnVer.ManuallySwizzleMaterials, exportSkin.SourcePath, exportSkin.LobbyAnimationFbx, exportSkin.LobbyAnimationJson, exportSkin.CharacterParts,

@@ -401,6 +401,8 @@ namespace UFMT.UI
             UeVersion currentUeVersion = CurrentUeVersion;
             FnVersion currentFnVersion = CurrentFnVersion;
             string ueEmotesOsPath = ueEmotesPackagePath.Substring(6, ueEmotesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
+            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
+            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
 
             EmoteValidator.ValidateBeforeExportProcess(ueEmotesPackagePath, ueProjectPath, ueExecutablePath, exportEmote.Name, exportEmote.Description, exportEmote.Rarity,
             rarityComboBox.Items.Select(item => item as string).ToArray());
@@ -418,8 +420,8 @@ namespace UFMT.UI
 
             UnrealExportEmoteData unrealData = UnrealExportDataCollector.CollectEmoteData(exportEmote, ueEmotesPackagePath, currentUeVersion.Name);
 
-            UnrealDependencySetup.CreateMissingFiles(ueProjectPath, currentUeVersion.BaseHeadPath, cookedexportEmotePath, currentUeVersion.Name,
-            currentUeVersion.BaseHeadFileNames);
+            if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedexportEmotePath, currentUeVersion.Name,
+            currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
 
             string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportEmoteData);
 
