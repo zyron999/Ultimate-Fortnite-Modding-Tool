@@ -103,27 +103,25 @@
                                                     FontSize="16" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"/>
                                             <NumberBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Center" MinWidth="0" PlaceholderText="2.0"
                                             Value="{x:Bind SbcRed, Mode=TwoWay}" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"
-                                            NumberFormatter="{x:Bind DotFormatter}"/>
+                                            NumberFormatter="{x:Bind DotFormatter}" Minimum="0" ValueChanged="NumberBox_ValueChanged"/>
 
                                             <TextBlock Text="Green" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"
                                                     FontSize="16" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"/>
                                             <NumberBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Center" MinWidth="0" PlaceholderText="2.0"
                                             Value="{x:Bind SbcGreen, Mode=TwoWay}" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"
-                                            NumberFormatter="{x:Bind DotFormatter}"/>
+                                            NumberFormatter="{x:Bind DotFormatter}" Minimum="0" ValueChanged="NumberBox_ValueChanged"/>
 
                                             <TextBlock Text="Blue" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"
                                                     FontSize="16" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"/>
                                             <NumberBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Center" MinWidth="0" PlaceholderText="2.0"
                                             Value="{x:Bind SbcBlue, Mode=TwoWay}" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"
-                                            NumberFormatter="{x:Bind DotFormatter}"/>
+                                            NumberFormatter="{x:Bind DotFormatter}" Minimum="0" ValueChanged="NumberBox_ValueChanged"/>
 
                                             <TextBlock Text="Alpha" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center"
                                                     FontSize="16" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"/>
                                             <NumberBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Center" MinWidth="0" PlaceholderText="2.0"
                                             Value="{x:Bind SbcAlpha, Mode=TwoWay}" Visibility="{x:Bind UseSkinBoostColor, Mode=OneWay}"
-                                            NumberFormatter="{x:Bind DotFormatter}"/>
-
-
+                                            NumberFormatter="{x:Bind DotFormatter}" Minimum="0" ValueChanged="NumberBox_ValueChanged"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>

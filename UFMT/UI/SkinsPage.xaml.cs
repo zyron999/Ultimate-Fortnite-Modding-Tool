@@ -561,6 +561,14 @@ namespace UFMT.UI
             args.Cancel = false;
         }
 
+        private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        {
+            if (double.IsNaN(args.NewValue) || double.IsInfinity(args.NewValue) || args.NewValue < 0)
+            {
+                sender.Value = 0;
+            }
+        }
+
         private void AllSwizzleChecked(object sender, RoutedEventArgs e)
         {
             if (IsUpdatingFromCode) return;
@@ -1228,6 +1236,7 @@ namespace UFMT.UI
 
             set
             {
+                if (float.IsNaN(value)) value = 0f;
                 _sbcRed = value;
 
                 if (ParentPage?.CurrentSkin?.Materials == null)
@@ -1238,7 +1247,7 @@ namespace UFMT.UI
 
                 foreach (Material mat in ParentPage?.CurrentSkin.Materials)
                 {
-                    if (!mat.UseSkinBoostColor && value != 0 && Math.Abs(mat._sbcRed - value) > 0.0001f)
+                    if (!mat.UseSkinBoostColor && Math.Abs(mat._sbcRed - value) > 0.0001f)
                     {
                         mat.SbcRed = value;
                     }
@@ -1256,6 +1265,7 @@ namespace UFMT.UI
 
             set
             {
+                if (float.IsNaN(value)) value = 0f;
                 _sbcGreen = value;
 
                 if (ParentPage?.CurrentSkin?.Materials == null)
@@ -1266,7 +1276,7 @@ namespace UFMT.UI
 
                 foreach (Material mat in ParentPage?.CurrentSkin.Materials)
                 {
-                    if (!mat.UseSkinBoostColor && value != 0 && Math.Abs(mat._sbcGreen - value) > 0.0001f)
+                    if (!mat.UseSkinBoostColor && Math.Abs(mat._sbcGreen - value) > 0.0001f)
                     {
                         mat.SbcGreen = value;
                     }
@@ -1284,6 +1294,7 @@ namespace UFMT.UI
 
             set
             {
+                if (float.IsNaN(value)) value = 0f;
                 _sbcBlue = value;
 
                 if (ParentPage?.CurrentSkin?.Materials == null)
@@ -1294,7 +1305,7 @@ namespace UFMT.UI
 
                 foreach (Material mat in ParentPage?.CurrentSkin.Materials)
                 {
-                    if (!mat.UseSkinBoostColor && value != 0 && Math.Abs(mat._sbcBlue - value) > 0.0001f)
+                    if (!mat.UseSkinBoostColor && Math.Abs(mat._sbcBlue - value) > 0.0001f)
                     {
                         mat.SbcBlue = value;
                     }
@@ -1312,6 +1323,7 @@ namespace UFMT.UI
 
             set
             {
+                if (float.IsNaN(value)) value = 0f;
                 _sbcAlpha = value;
 
                 if (ParentPage?.CurrentSkin?.Materials == null)
@@ -1322,7 +1334,7 @@ namespace UFMT.UI
 
                 foreach (Material mat in ParentPage?.CurrentSkin.Materials)
                 {
-                    if (!mat.UseSkinBoostColor && value != 0 && Math.Abs(mat._sbcAlpha - value) > 0.0001f)
+                    if (!mat.UseSkinBoostColor && Math.Abs(mat._sbcAlpha - value) > 0.0001f)
                     {
                         mat.SbcAlpha = value;
                     }
