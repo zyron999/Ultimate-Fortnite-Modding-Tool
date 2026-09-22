@@ -65,13 +65,38 @@ namespace UFMT.FnAssetsLogic
             return true;
         }
 
-        internal static bool ValidateBeforeExport(string ueVersion, string gender, string name, string description, string cid)
+        internal static bool ValidateBeforeExport(string ueVersion, string gender, string name, string description, string cid, string ueSkinsPackagePath, 
+        string ueProjectPath, string ueExecutablePath)
         {
             if (string.IsNullOrEmpty(ueVersion))
             {
                 Log.Error($"No unreal engine selected! Make sure you selected the correct ue version in the settings!");
                 return false;
             }
+
+            if (!ueSkinsPackagePath.StartsWith("/Game/"))
+            {
+                Log.Error($"\"{ueSkinsPackagePath}\" is not a valid Unreal package path, it must start with /Game/");
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(ueProjectPath)) 
+            {
+                Log.Error("Unreal Engine Project path is empty!"); 
+                return false; 
+            }
+            if (!File.Exists(ueProjectPath) || Path.GetExtension(ueProjectPath) != ".uproject") 
+            { 
+                Log.Error($"{ueProjectPath} does not exist or is not a valid .uproj file!"); 
+                return false; 
+            }
+
+            if (!File.Exists(ueExecutablePath) || Path.GetExtension(ueExecutablePath) != ".exe")
+            {
+                Log.Error($"{ueExecutablePath} does not exist or is not a valid unreal executable file!");
+                return false;
+            }
+
             if (string.IsNullOrEmpty(gender))
             {
                 Log.Error($"Skin's gender is unspecified!");
