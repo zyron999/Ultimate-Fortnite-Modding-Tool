@@ -23,6 +23,8 @@ namespace UFMT.UnrealEngine
                 string baseHeadPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), ueBaseHeadPath);
                 string mediumLodSettingsFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings");
                 string mediumLodSettingsFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings", "Medium_Player_LODSettings.uasset");
+                string accessoriesFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories");
+                string accessoriesFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
 
                 await File.WriteAllBytesAsync(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "FakeCID.uasset"));
                 if (!Directory.Exists(BaseMeshSkeletonPath)) Directory.CreateDirectory(Path.GetDirectoryName(BaseMeshSkeletonPath));
@@ -44,6 +46,12 @@ namespace UFMT.UnrealEngine
                     string filePath = Path.Combine(baseHeadPath, $"{fileName}");
                     await File.WriteAllBytesAsync(filePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", fileName));
                 }
+
+                if (!Directory.Exists(accessoriesFolderPath))
+                {
+                    Directory.CreateDirectory(accessoriesFolderPath);
+                }
+                await File.WriteAllBytesAsync(accessoriesFilePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
                 await Task.Run(() => ZipFile.ExtractToDirectory(physicsImporterPath, pluginPath));

@@ -29,6 +29,7 @@ lobby_animation_fbx_path = data.get("LobbyAnimationFbxPath")
 lobby_animation_json_path = data.get("LobbyAnimationJsonPath")
 retarget_source = data.get("RetargetSource")
 head_mesh_name = data.get("HeadMeshName")
+hat_mesh_name = data.get("HatMeshName")
 fn_version = data.get("CurrentFnVersion")
 ue_skins_package_path = data.get("UeSkinsPackagePath")
 
@@ -50,7 +51,7 @@ delete_directory_if_exists(tex_destination_path)
 delete_directory_if_exists(mi_destination_path)
 
 
-def import_fbx(fbx_path, asset_name, use_base_head = False):
+def import_fbx(fbx_path, asset_name, use_base_head = False, use_hat_skeleton = False):
     skel_data = unreal.FbxSkeletalMeshImportData()
     skel_data.set_editor_property("import_content_type", unreal.FBXImportContentType.FBXICT_ALL)
     skel_data.set_editor_property("import_translation",  unreal.Vector(0.0, 0.0, 0.0))
@@ -73,6 +74,14 @@ def import_fbx(fbx_path, asset_name, use_base_head = False):
 
     if use_base_head:
         target_skeleton_path = "/Game/Modding/Base_Head/Base_Head_Modding" if fn_version == "9.41" else "/Game/Base/Head/Skeleton/Base_Head_Skeleton"
+        sk = unreal.load_asset(target_skeleton_path)
+        if sk:
+            ui.skeleton = sk
+        else:
+            unreal.log_error("Failed to load base head skeleton at: {}".format(target_skeleton_path))
+
+    elif use_hat_skeleton:
+        target_skeleton_path = "/Game/Accessories/Accessories_Skeleton_Basic"
         sk = unreal.load_asset(target_skeleton_path)
         if sk:
             ui.skeleton = sk
@@ -374,6 +383,10 @@ for i in range(len(fbx_paths)):
             "post_process_anim_blueprint",
             unreal.load_class(None, anim_bp_path)
         )
+
+    elif (asset_names[i] == hat_mesh_name):
+        import_fbx(fbx_paths[i], asset_names[i], False, True)
+        mesh = unreal.EditorAssetLibrary.load_asset("{}/{}".format(fbx_destination_path, asset_names[i]))
 
     else:
         import_fbx(fbx_paths[i], asset_names[i])
