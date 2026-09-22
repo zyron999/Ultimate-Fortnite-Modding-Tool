@@ -731,21 +731,22 @@ namespace UFMT.UI
             seriesComboBox.Items.Remove(itemToDelete);
             Console.WriteLine($"Deleted \"{itemToDelete}\"");
         }
-
         private void CharacterTextBoxChanged(object sender, RoutedEventArgs e)
         {
             var c = sender as TextBox;
-            if (c.Tag.ToString() == "characterName")
+            string characterTextBoxType = c?.Tag?.ToString();
+            if (characterTextBoxType == null || CurrentSkin == null) return;
+            if (characterTextBoxType == "characterName")
             {
                 CurrentSkin.Name = c.Text;
                 characterNameText.Text = CurrentSkin.Name.ToUpper();
                 characterNameTextCh1.Text = CurrentSkin.Name.ToUpper();
             }
-            else if (c.Tag.ToString() == "characterDescription")
+            else if (characterTextBoxType == "characterDescription")
             {
                 CurrentSkin.Description = c.Text;
             }
-            else if (c.Tag.ToString() == "characterCID")
+            else if (characterTextBoxType == "characterCID")
             {
                 CurrentSkin.CID = c.Text;
             }
