@@ -81,32 +81,40 @@ namespace UFMT.UnrealEngine
 
         internal static UnrealExportEmoteData CollectEmoteData(EmoteData currentEmote, string emotePackagePath, string unrealEngineVersion)
         {
-            List<string> iconTexturePaths = new List<string>();
-            iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.SmallIcon));
-            iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.LargeIcon));
-            if (currentEmote.SmallIcon == string.Empty) iconTexturePaths[0] = string.Empty;
-            if (currentEmote.LargeIcon == string.Empty) iconTexturePaths[1] = string.Empty;
-
-            var unrealData = new UnrealExportEmoteData()
+            try
             {
-                MaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.MaleAnimationFbx),
-                MaleAnimationJsonPath = Path.Combine(currentEmote.AnimationsPath, currentEmote.MaleAnimationJson),
-                MaleAnimationLength = currentEmote.MaleAnimationLength,
-                FemaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.FemaleAnimationFbx),
-                FemaleAnimationJsonPath = Path.Combine(currentEmote.AnimationsPath, currentEmote.FemaleAnimationJson),
-                FemaleAnimationLength = currentEmote.FemaleAnimationLength,
-                SoundWavPath = Path.Combine(currentEmote.SoundPath, currentEmote.SoundWav),
-                SoundWavCompressionQuality = currentEmote.SoundWavCompressionQuality,
-                IconTexturePaths = iconTexturePaths.ToArray(),
-                Codename = currentEmote.Codename,
-                EID = currentEmote.EID,
-                UeEmotesPackagePath = emotePackagePath,
-                UnrealEngineVersion = unrealEngineVersion
-            };
+                List<string> iconTexturePaths = new List<string>();
+                iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.SmallIcon));
+                iconTexturePaths.Add(Path.Combine(currentEmote.IconsPath, currentEmote.LargeIcon));
+                if (currentEmote.SmallIcon == string.Empty) iconTexturePaths[0] = string.Empty;
+                if (currentEmote.LargeIcon == string.Empty) iconTexturePaths[1] = string.Empty;
 
-            if (currentEmote.MaleAnimationJson == string.Empty) unrealData.MaleAnimationJsonPath = string.Empty;
-            if (currentEmote.FemaleAnimationJson == string.Empty) unrealData.FemaleAnimationJsonPath = string.Empty;
-            return unrealData;
+                var unrealData = new UnrealExportEmoteData()
+                {
+                    MaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.MaleAnimationFbx),
+                    MaleAnimationJsonPath = Path.Combine(currentEmote.AnimationsPath, currentEmote.MaleAnimationJson),
+                    MaleAnimationLength = currentEmote.MaleAnimationLength,
+                    FemaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.FemaleAnimationFbx),
+                    FemaleAnimationJsonPath = Path.Combine(currentEmote.AnimationsPath, currentEmote.FemaleAnimationJson),
+                    FemaleAnimationLength = currentEmote.FemaleAnimationLength,
+                    SoundWavPath = Path.Combine(currentEmote.SoundPath, currentEmote.SoundWav),
+                    SoundWavCompressionQuality = currentEmote.SoundWavCompressionQuality,
+                    IconTexturePaths = iconTexturePaths.ToArray(),
+                    Codename = currentEmote.Codename,
+                    EID = currentEmote.EID,
+                    UeEmotesPackagePath = emotePackagePath,
+                    UnrealEngineVersion = unrealEngineVersion
+                };
+
+                if (currentEmote.MaleAnimationJson == string.Empty) unrealData.MaleAnimationJsonPath = string.Empty;
+                if (currentEmote.FemaleAnimationJson == string.Empty) unrealData.FemaleAnimationJsonPath = string.Empty;
+                return unrealData;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"An error occured while trying to collect UnrealExportEmoteData! {ex.Message}");
+                return null;
+            }
         }
     }
 }

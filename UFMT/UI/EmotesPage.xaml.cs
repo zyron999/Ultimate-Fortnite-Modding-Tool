@@ -96,9 +96,6 @@ namespace UFMT.UI
         }
         public static FnVersion CurrentFnVersion = FnVersionsData.FnVersions.GetValueOrDefault(App.Settings.FnVersion);
         public static UeVersion CurrentUeVersion = UeVersionsData.UeVersions.GetValueOrDefault(App.Settings.UeVersion);
-        public static string CookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
-        "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(App.Settings.UeProjectPath), "Content");
-        public static string OutputFnGamePath;
         public static string PreviouslySelectedSeries = "None";
 
         private void EmotesPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -155,7 +152,6 @@ namespace UFMT.UI
                 return;
             }
 
-            OutputFnGamePath = Path.Combine(CurrentEmote.Path, "Output", App.Settings.FnVersion, "FortniteGame");
             CurrentEmote.PropertyChanged += (s, e) => SaveEmoteConfig();
         }
         private async void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -396,16 +392,18 @@ namespace UFMT.UI
             string blenderPath = App.Settings.BlenderPath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
-            string cookedAssetsPath = CookedAssetsPath;
-            string outputFnGamePath = OutputFnGamePath;
             UeVersion currentUeVersion = CurrentUeVersion;
             FnVersion currentFnVersion = CurrentFnVersion;
+
+            if (!EmoteValidator.ValidateBeforeExportProcess(ueEmotesPackagePath, ueProjectPath, ueExecutablePath, exportEmote.Name, exportEmote.Description, exportEmote.Rarity,
+            rarityComboBox.Items.Select(item => item as string).ToArray(), currentUeVersion, currentFnVersion)) return;
+
+            string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(ueProjectPath),
+            "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(ueProjectPath), "Content"); ;
+            string outputFnGamePath = Path.Combine(exportEmote.Path, "Output", CurrentFnVersion.Name);
             string ueEmotesOsPath = ueEmotesPackagePath.Substring(6, ueEmotesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
             string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
             string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
-
-            EmoteValidator.ValidateBeforeExportProcess(ueEmotesPackagePath, ueProjectPath, ueExecutablePath, exportEmote.Name, exportEmote.Description, exportEmote.Rarity,
-            rarityComboBox.Items.Select(item => item as string).ToArray());
 
             exportEmote.MaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMM.fbx";
             exportEmote.FemaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMF.fbx";
@@ -419,6 +417,7 @@ namespace UFMT.UI
             Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.FemaleAnimationFbx))) return;
 
             UnrealExportEmoteData unrealData = UnrealExportDataCollector.CollectEmoteData(exportEmote, ueEmotesPackagePath, currentUeVersion.Name);
+            if (unrealData == null) return;
 
             if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedexportEmotePath, currentUeVersion.Name,
             currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;

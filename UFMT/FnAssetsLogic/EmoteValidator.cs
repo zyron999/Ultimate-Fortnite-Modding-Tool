@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UFMT.Core;
+using UFMT.FnAssets;
 using UFMT.UI;
-using Windows.Security.Authentication.OnlineId;
+using UFMT.UnrealEngine;
 
 namespace UFMT.FnAssetsLogic
 {
@@ -114,7 +112,7 @@ namespace UFMT.FnAssetsLogic
         }
 
         internal static bool ValidateBeforeExportProcess(string ueEmotesPackagePath, string ueProjectPath, string ueExecutablePath, string name, string description, 
-        string rarity, string[] validRarities)
+        string rarity, string[] validRarities, UeVersion ueVersion, FnVersion fnVersion)
         {
             if (!ueEmotesPackagePath.StartsWith("/Game/"))
             {
@@ -162,6 +160,17 @@ namespace UFMT.FnAssetsLogic
             {
                 Log.Error($"{rarity} is not a valid rarity!"); // If the user loads a JSON with unrecognized rarity? idk this check is just in case
                 return false;
+            }
+
+            if (fnVersion == null)
+            {
+                Log.Error($"Fortnite version was null!");
+                return false;
+            }
+
+            if (ueVersion == null)
+            {
+                Log.Error("Unreal Engine version was null!");
             }
 
             return true;
