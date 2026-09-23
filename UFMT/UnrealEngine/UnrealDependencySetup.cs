@@ -9,7 +9,7 @@ namespace UFMT.UnrealEngine
 {
     internal static class UnrealDependencySetup
     {
-        internal static async Task<bool> AddRequiredUeAssetsBeforeExport(string ueProjectPath, string ueBaseHeadPath, string cookedCodenamePath, string UeVersionNumber, 
+        internal static async Task<bool> AddRequiredUeAssetsBeforeExport(string ueProjectPath, string ueBaseHeadPath, string cookedCodenamePath, string ueVersionNumber,
         string[] baseHeadFileNames, string pluginPath, string physicsImporterPath)
         {
             try
@@ -26,10 +26,10 @@ namespace UFMT.UnrealEngine
                 string accessoriesFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories");
                 string accessoriesFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
 
-                await File.WriteAllBytesAsync(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "FakeCID.uasset"));
+                await AddOrReplaceUeAsset(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "FakeCID.uasset"));
                 if (!Directory.Exists(BaseMeshSkeletonPath)) Directory.CreateDirectory(Path.GetDirectoryName(BaseMeshSkeletonPath));
-                await File.WriteAllBytesAsync(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
-                await File.WriteAllBytesAsync(BaseMeshPath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "BaseMesh.uasset"));
+                await AddOrReplaceUeAsset(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
+                await AddOrReplaceUeAsset(BaseMeshPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMesh.uasset"));
                 if (Directory.Exists(cookedCodenamePath)) Directory.Delete(cookedCodenamePath, true);
                 if (!Directory.Exists(baseHeadPath))
                 {
@@ -39,23 +39,24 @@ namespace UFMT.UnrealEngine
                 {
                     Directory.CreateDirectory(mediumLodSettingsFolderPath);
                 }
-                await File.WriteAllBytesAsync(mediumLodSettingsFilePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "Medium_Player_LODSettings.uasset"));
-
+                await AddOrReplaceUeAsset(mediumLodSettingsFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Medium_Player_LODSettings.uasset"));
                 foreach (string fileName in baseHeadFileNames)
                 {
                     string filePath = Path.Combine(baseHeadPath, $"{fileName}");
-                    await File.WriteAllBytesAsync(filePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", fileName));
+                    await AddOrReplaceUeAsset(filePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", fileName));
                 }
 
                 if (!Directory.Exists(accessoriesFolderPath))
                 {
                     Directory.CreateDirectory(accessoriesFolderPath);
                 }
-                await File.WriteAllBytesAsync(accessoriesFilePath, TemplateLoader.GetEmbeddedFile(UeVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
+                await AddOrReplaceUeAsset(accessoriesFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
+                Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(pluginPath)}...");
                 await Task.Run(() => ZipFile.ExtractToDirectory(physicsImporterPath, pluginPath));
-                Log.Success($"Succesfully Added/Replaced required assets in ue");
+                Console.WriteLine($"Replaced/Added {Path.GetFileNameWithoutExtension(physicsImporterPath)}");
+                Log.Success($"Succesfully Added/Replaced required assets in UE");
                 return true;
             }
             catch (Exception ex)
@@ -63,6 +64,16 @@ namespace UFMT.UnrealEngine
                 Log.Error($"An error occurred while trying to add and replace required assets in Unreal Engine. {ex.Message}");
                 return false;
             }
+        }
+
+        internal static async Task AddOrReplaceUeAsset(string filePath, byte[] fileInBytes)
+        {
+            string fileFolderPath = Path.GetDirectoryName(filePath);
+            string fileName = Path.GetFileName(filePath);
+            if (!File.Exists(fileFolderPath)) Directory.CreateDirectory(fileFolderPath);
+            Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(filePath)}...");
+            await File.WriteAllBytesAsync(filePath, fileInBytes);
+            Console.WriteLine($"Replaced/Added {fileName}");
         }
     }
 }

@@ -31,7 +31,6 @@ namespace UFMT.UI
     {
         public static FnVersion CurrentFnVersion = FnVersionsData.FnVersions.GetValueOrDefault(App.Settings.FnVersion);
         public static UeVersion CurrentUeVersion = UeVersionsData.UeVersions.GetValueOrDefault(App.Settings.UeVersion);
-        private static readonly string ValidCodenameCharacters = "abcdefghijklmnopqrstuvwxyz1234567890_";
         public string PreviouslySelectedSeries = "None";
         private CancellationTokenSource _currentSkinPathDebounce;
         private string OutputFnGamePath = string.Empty;
@@ -328,8 +327,6 @@ namespace UFMT.UI
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
 
-            Log.Test("Going to validate before export!");
-
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
@@ -352,12 +349,11 @@ namespace UFMT.UI
 
             if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, ueVer.BaseHeadPath, cookedCodenamePath, ueVer.Name,
             ueVer.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
-
+            
             UnrealExportSkinData unrealData = UnrealExportDataCollector.CollectSkinData(exportSkin.SmallIcon, exportSkin.LargeIcon, exportSkin.Materials, exportSkin.TexturesPath,
             fnVer.ManuallySwizzleMaterials, exportSkin.SourcePath, exportSkin.LobbyAnimationFbx, exportSkin.LobbyAnimationJson, exportSkin.CharacterParts,
             exportSkin.Gender, exportSkin.Codename, exportSkin.CID, ueSkinsPackagePath);
             if (unrealData == null) return;
-
             string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportSkinData);
             await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "skin");
 
@@ -474,14 +470,10 @@ namespace UFMT.UI
                 return;
             }
 
-            foreach (char c in CodenameFolderCreateTextBox.Text)
+            if (CodenameFolderCreateTextBox.Text.Any(c => !char.IsAsciiLetterOrDigit(c) && c != '_'))
             {
-                if (!ValidCodenameCharacters.Contains(c.ToString().ToLower()))
-                {
-                    Log.Error("The codename can only contain alphabetical characters, " +
-                    "numbers and _");
-                    return;
-                }
+                Log.Error("The codename can only contain alphabetical characters, numbers and _");
+                return;
             }
 
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text));
