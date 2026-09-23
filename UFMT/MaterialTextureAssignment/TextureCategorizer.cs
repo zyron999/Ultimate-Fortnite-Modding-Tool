@@ -67,7 +67,7 @@ namespace UFMT.MaterialTextureAssignment
             }
             else if (smallIcon == null && largeIcon == null)
             {
-                Log.Warning("Cannot find the icons for the skin, the skin won't have any icons!");
+                Log.Warning($"Cannot find the icons for the {cosmeticType}, the {cosmeticType} won't have any icons!");
                 return (string.Empty, string.Empty);
             }
 
