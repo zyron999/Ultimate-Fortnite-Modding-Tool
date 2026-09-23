@@ -19,18 +19,12 @@ namespace UFMT.Blender
         private static string ProperSkeletonBlendPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "proper_fn_skeleton.blend");
         internal static async Task<bool> ConvertPskToFbx(List<CharacterPart> characterParts, string sourcePath, string codename)
         {
-            Console.WriteLine("Converting .psk files to .fbx");
-
             foreach (CharacterPart cp in characterParts)
             {
                 string fbxFolderPath = Path.Combine(sourcePath, "Fbx", cp.Type);
                 string exportName = $"{codename}_{cp.Type}";
                 string fbxFilePath = Path.Combine(Path.Combine(fbxFolderPath, $"{exportName}.fbx"));
-                if (!Directory.Exists(fbxFolderPath))
-                {
-                    Directory.CreateDirectory(fbxFolderPath);
-                    Console.WriteLine($"Created {fbxFolderPath}");
-                }
+                if (!Directory.Exists(fbxFolderPath)) Directory.CreateDirectory(fbxFolderPath);
 
                 cp.FbxPath = Path.Combine(fbxFolderPath, exportName);
                 if (!File.Exists(fbxFilePath))
@@ -47,6 +41,7 @@ namespace UFMT.Blender
                     }
                     else
                     {
+                        Console.WriteLine($"Converting {Path.GetFileName(cp.PskPath)} to {Path.GetFileName(fbxFilePath)}...");
                         if (!File.Exists(PskConvertScript))
                         {
                             Log.Error($"Failed to find Blender_ConvertPsk.py! \"{PskConvertScript}\" does not exist or is not a python file!");
@@ -104,8 +99,7 @@ namespace UFMT.Blender
             }
             return true;
         }
-
-        internal static async Task<bool> ConvertPsaToFbx(string psaFilePath, string fbxFileExportPath)
+        internal static async Task<bool> ConvertPsaToFbx(string psaFilePath, string fbxFileExportPath, bool allowOnlyOneFbx)
         {
             try
             {
@@ -133,45 +127,53 @@ namespace UFMT.Blender
                     return false;
                 }
 
-                Console.WriteLine($"Converting {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}");
-
                 string fbxFolderPath = Path.GetDirectoryName(fbxFileExportPath);
-                if (!string.IsNullOrEmpty(fbxFolderPath) && !Directory.Exists(fbxFolderPath))
+                if (!Directory.Exists(fbxFolderPath)) Directory.CreateDirectory(fbxFolderPath);
+                string[] fbxFiles = Directory.GetFiles(fbxFolderPath, "*.fbx");
+                if (fbxFiles.Length > 1 && allowOnlyOneFbx)
                 {
-                    Directory.CreateDirectory(fbxFolderPath);
-                    Console.WriteLine($"Created \n{fbxFolderPath}\n");
+                    Log.Error($"More than 1 fbx files found in {fbxFolderPath}, make sure there is only 1 animation!");
+                    return false;
                 }
-
-                string arguments = $"-b \"{ProperSkeletonBlendPath}\" --python \"{PsaConvertScript}\" -- \"{psaFilePath}\" \"{fbxFileExportPath}\"";
-
-                ProcessStartInfo psi = new ProcessStartInfo(App.Settings.BlenderPath, arguments)
+                else if (fbxFiles.Length == 1 && allowOnlyOneFbx)
                 {
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (Process blender = Process.Start(psi))
-                {
-                    string stdout = await blender.StandardOutput.ReadToEndAsync();
-                    string stderr = await blender.StandardError.ReadToEndAsync();
-                    await blender.WaitForExitAsync();
-
-                    if (blender.ExitCode != 0)
-                    {
-                        Log.Error($"Blender export failed with exit code {blender.ExitCode}:\n{stderr}");
-                        return false;
-                    }
-                    if (!File.Exists(fbxFileExportPath))
-                    {
-                        Log.Error($"Failed to convert {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}");
-                        Log.Error("Make sure you are using the correct Blender version and have all the plugins properly installed!");
-                        return false;
-                    }
+                    File.Move(fbxFiles[0], fbxFileExportPath);
                 }
+                else if (!File.Exists(fbxFileExportPath))
+                {
+                    Console.WriteLine($"Converting {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}...");
 
-                Log.Success($"Successfully converted {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}");
+                    string arguments = $"-b \"{ProperSkeletonBlendPath}\" --python \"{PsaConvertScript}\" -- \"{psaFilePath}\" \"{fbxFileExportPath}\"";
+
+                    ProcessStartInfo psi = new ProcessStartInfo(App.Settings.BlenderPath, arguments)
+                    {
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (Process blender = Process.Start(psi))
+                    {
+                        string stdout = await blender.StandardOutput.ReadToEndAsync();
+                        string stderr = await blender.StandardError.ReadToEndAsync();
+                        await blender.WaitForExitAsync();
+
+                        if (blender.ExitCode != 0)
+                        {
+                            Log.Error($"Blender export failed with exit code {blender.ExitCode}:\n{stderr}");
+                            return false;
+                        }
+                        if (!File.Exists(fbxFileExportPath))
+                        {
+                            Log.Error($"Failed to convert {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}");
+                            Log.Error("Make sure you are using the correct Blender version and have all the plugins properly installed!");
+                            return false;
+                        }
+                    }
+
+                    Log.Success($"Successfully converted {Path.GetFileName(psaFilePath)} to {Path.GetFileName(fbxFileExportPath)}");
+                }
                 return true;
             }
             catch (Exception ex )

@@ -435,10 +435,20 @@ namespace UFMT.UI
             string OutputFnGameexportEmoteFolder = Path.Combine(outputFnGamePath, "Content", ueEmotesOsPath, exportEmote.Codename);
 
             if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(exportEmote.SourcePath, "Animations", exportEmote.MaleAnimationPsa),
-            Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.MaleAnimationFbx))) return;
+            Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.MaleAnimationFbx), false)) return;
 
-            if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(exportEmote.SourcePath, "Animations", exportEmote.FemaleAnimationPsa),
-            Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.FemaleAnimationFbx))) return;
+            if (exportEmote.MaleAnimationPsa == exportEmote.FemaleAnimationPsa)
+            {
+                // if male and female use the same animation, just copy the male one with female's name since it's faster than converting the same .psa file again
+                File.Copy(Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.MaleAnimationFbx),
+                Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.FemaleAnimationFbx));
+                Log.Success($"Successfully converted {Path.GetFileName(exportEmote.FemaleAnimationPsa)} to {Path.GetFileName(exportEmote.FemaleAnimationFbx)}");
+            }
+            else
+            {
+                if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(exportEmote.SourcePath, "Animations", exportEmote.FemaleAnimationPsa),
+                Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.FemaleAnimationFbx), false)) return;
+            }
 
             UnrealExportEmoteData unrealData = UnrealExportDataCollector.CollectEmoteData(exportEmote, ueEmotesPackagePath, currentUeVersion.Name);
             if (unrealData == null) return;

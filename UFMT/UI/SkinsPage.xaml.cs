@@ -340,7 +340,7 @@ namespace UFMT.UI
             if (exportSkin.LobbyAnimationPsa != string.Empty)
             {
                 bool isAnimValid = await FbxConverter.ConvertPsaToFbx(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationPsa}.psa"),
-                Path.Combine(exportSkin.SourcePath, "Fbx", "Lobby_Animation", $"{exportSkin.Codename}_Lobby_Animation.fbx"));
+                Path.Combine(exportSkin.SourcePath, "Fbx", "Lobby_Animation", $"{exportSkin.Codename}_Lobby_Animation.fbx"), true);
                 if (!isAnimValid) return;
                 exportSkin.LobbyAnimationFbx = $"{exportSkin.Codename}_Lobby_Animation";
                 exportSkin.LobbyAnimationLength = (float)PsaReader.GetAnimationLength(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationPsa}.psa")) / 30f;
