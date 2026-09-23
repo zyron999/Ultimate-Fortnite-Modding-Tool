@@ -307,8 +307,8 @@ namespace UFMT.UI
             }
             try
             {
-                await BlenderPreviewRenderer.RenderSkinPreviewImage(CurrentSkin.CharacterParts, CurrentSkin.Gender, CurrentSkin.LobbyAnimationFolderPath, CurrentSkin.LobbyAnimationPsa,
-                CurrentSkin.Materials, CurrentSkin.Path, CurrentSkin.Codename, CurrentSkin.TexturesPath, App.Settings.FnVersion);
+                if (!await BlenderPreviewRenderer.RenderSkinPreviewImage(CurrentSkin.CharacterParts, CurrentSkin.Gender, CurrentSkin.LobbyAnimationFolderPath, CurrentSkin.LobbyAnimationPsa,
+                CurrentSkin.Materials, CurrentSkin.Path, CurrentSkin.Codename, CurrentSkin.TexturesPath, App.Settings.FnVersion)) return;
                 await UpdateSkinPreviewImage(CurrentSkin.SourcePath, CurrentSkin.Codename, CurrentSkin.LargeIcon);
             }
             catch (Exception ex)
@@ -327,9 +327,8 @@ namespace UFMT.UI
             string ueExecutablePath = App.Settings.UeExecutablePath;
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
-            string ueSkinsOsPath = ueSkinsPackagePath.Substring(6, ueSkinsPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
-            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
-            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{ueVer.Name}.zip");
+
+            Log.Test("Going to validate before export!");
 
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
@@ -337,6 +336,9 @@ namespace UFMT.UI
 
             string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
             "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(App.Settings.UeProjectPath), "Content");
+            string ueSkinsOsPath = ueSkinsPackagePath.Substring(6, ueSkinsPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
+            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
+            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{ueVer.Name}.zip");
 
             if (exportSkin.LobbyAnimationPsa != string.Empty)
             {
