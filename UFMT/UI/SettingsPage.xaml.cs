@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UAssetAPI.UnrealTypes;
+using UFMT.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using WinRT.UFMTGenericHelpers;
@@ -44,7 +45,23 @@ public sealed partial class SettingsPage : Page
 
         if (path.Contains("\"")) path = path.Replace("\"", "");
         if (path.Contains("\\")) path = path.Replace("\\", "/");
-        if (path.EndsWith("/")) path = path.Substring(0, path.Length-1);
+        if (!path.StartsWith("/Game") && path.ToLower().StartsWith("/game")) path = $"/Game{path.Substring(5, path.Length - 5)}"; // Capitalize /Game if it's not already
+        if (!path.ToLower().StartsWith("/game/") && path.ToLower() != "/game") path = $"/Game/{path}";
+        
+        List<int> removeIndexes = new();
+        for (int i = path.Length-1; i >= 0; i--)
+        {
+            if (i != 0 && path[i] == '/' && path[i - 1] == '/') 
+            {
+                removeIndexes.Add(i);
+            }
+            else if (!char.IsAsciiLetterOrDigit(path[i]) && path[i] != '/')
+            {
+                removeIndexes.Add(i);
+            }
+        }
+        removeIndexes.ForEach(index => path = path.Remove(index, 1));
+        if (path.EndsWith("/")) path = path.Substring(0, path.Length - 1);
 
         (sender as TextBox).Text = path;
     }
