@@ -27,6 +27,8 @@ namespace UFMT.UI
     {
         private CancellationTokenSource _currentEmotePathDebounce;
         public event PropertyChangedEventHandler PropertyChanged;
+        public Windows.Globalization.NumberFormatting.DecimalFormatter DotFormatter { get; } =
+        new Windows.Globalization.NumberFormatting.DecimalFormatter(new[] { "en-US" }, "US");
         private EmoteData _currentEmote;
         public EmoteData CurrentEmote
         {
@@ -98,6 +100,7 @@ namespace UFMT.UI
         public static UeVersion CurrentUeVersion = UeVersionsData.UeVersions.GetValueOrDefault(App.Settings.UeVersion);
         public static string PreviouslySelectedSeries = "None";
 
+
         private void EmotesPathTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             AppSettings.SetValue("EmotesPath", (sender as TextBox)?.Text);
@@ -113,6 +116,7 @@ namespace UFMT.UI
             }
             catch (TaskCanceledException)
             {
+                Log.Test("Returned because of task cancellation exception!");
                 return;
             }
             AppSettings.SetValue("CurrentEmotePath", (sender as TextBox).Text);
@@ -284,7 +288,27 @@ namespace UFMT.UI
 
             args.Cancel = false;
         }
-        private void Reimport_Click(object sender, RoutedEventArgs e) { }
+        private void Reimport_Click(object sender, RoutedEventArgs e) 
+        {
+            if (CurrentEmote == null || CurrentEmote.Path == null || !Directory.Exists(CurrentEmote.Path) || CurrentEmote.Codename == null) 
+            {
+                Log.Test("Returned!");
+                return;
+            } 
+
+            string skinSettingsFilePath = Path.Combine(CurrentEmote.Path, $"{CurrentEmote.Codename}_Settings.json");
+            if (File.Exists(skinSettingsFilePath)) File.Delete(skinSettingsFilePath);
+            CurrentEmotePathTextBox_TextChanged(CurrentEmotePathTextBox, null);
+            Log.Success($"Reimported {CurrentEmote.Codename}!");
+
+        }
+        private void NumberBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        {
+            if (double.IsNaN(args.NewValue) || double.IsInfinity(args.NewValue) || args.NewValue < 0)
+            {
+                sender.Value = 0;
+            }
+        }
         private void SaveSeries(IObservableVector<object> sender, IVectorChangedEventArgs e)
         {
             AppSettings.SetValue("AvailableSeries", seriesComboBox.Items);
