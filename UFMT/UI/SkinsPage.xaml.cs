@@ -222,7 +222,6 @@ namespace UFMT.UI
             CurrentSkin.Materials = new ObservableCollection<Material>(materials);
 
             DefaultTextureSetup.CreateDefaultTextures(DefaultTextureSetup.FindMissingDefaultTextures(CurrentSkin.TexturesPath), CurrentSkin.TexturesPath);
-            if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
             (string largeIcon, string smallIcon) = TextureCategorizer.GetIconTextures(CurrentSkin.TexturesPath, "skin");
             if (largeIcon == null || smallIcon == null) return;
             CurrentSkin.LargeIcon = largeIcon;
@@ -319,6 +318,8 @@ namespace UFMT.UI
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
+
+            if (fnVer.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(exportSkin.TexturesPath, exportSkin.Materials.Select(mat => mat.SelectedSpecular).ToArray());
 
             string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
             "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(App.Settings.UeProjectPath), "Content");
@@ -1014,8 +1015,6 @@ namespace UFMT.UI
                         }
                     }
                 }
-
-                if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
             }
             catch (Exception ex)
             {
