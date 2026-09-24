@@ -153,13 +153,13 @@
                         <TextBlock Text="Name" 
                                 FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <TextBox Width="300" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                PlaceholderText="Enter skin name" MaxLength="50" x:Name="characterNameTextBox"
+                                PlaceholderText="Enter skin name" MaxLength="50"
                                 TextChanged="CharacterTextBoxChanged" Tag="characterName" Text="{x:Bind CurrentSkin.Name, Mode=TwoWay}"/>
                         <Border Width="5"/>
                         <TextBlock Text="Description" 
                                 FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <TextBox Width="300" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                PlaceholderText="Enter skin description" MaxLength="150" x:Name="characterDescriptionTextBox"
+                                PlaceholderText="Enter skin description" MaxLength="150"
                                 TextChanged="CharacterTextBoxChanged" Tag="characterDescription" Text="{x:Bind CurrentSkin.Description, Mode=TwoWay}"/>
                         <Border Width="5"/>
                         <TextBlock Text="CID" 

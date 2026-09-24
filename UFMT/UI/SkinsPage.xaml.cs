@@ -12,9 +12,12 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UFMT.AssetRegistry;
 using UFMT.Blender;
 using UFMT.Core;
@@ -193,61 +196,47 @@ namespace UFMT.UI
                     return;
                 }
             }
-            ResetCpData();
+            CurrentSkin = new SkinData();
+            UpdateDropdowns();
             if (!SkinValidator.ValidateAfterPathChange(CurrentSkinPathTextBox.Text, CurrentSkin)) return;
 
             OutputFnGamePath = Path.Combine(CurrentSkin.Path, "Output", App.Settings.FnVersion, "FortniteGame");
             CurrentSkin.Codename = new DirectoryInfo(CurrentSkin.Path).Name;
             CurrentSkin.CID = $"CID_{CurrentSkin.Codename}";
 
+            List<CharacterPart> characterParts = 
+            SkinFolderScanner.FindCharacterParts(CurrentSkin.MeshesPath, CurrentSkin.PhysicsPath, new List<CharacterPart>() { Body, Head, FaceAcc, Hat });
+            if (characterParts == null) return;
+            CurrentSkin.CharacterParts = characterParts;
 
-            SkinData loadedJson = LoadSkinConfig(Path.Combine(CurrentSkin.Path, $"{CurrentSkin.Codename}_Settings.json"));
+            (bool isValid, string lobbyAnimationPsa, string lobbyAnimationJson) = SkinFolderScanner.FindLobbyAnimationFiles(CurrentSkin.LobbyAnimationFolderPath);
+            if (!isValid) return;
+            CurrentSkin.LobbyAnimationPsa = lobbyAnimationPsa;
+            CurrentSkin.LobbyAnimationJson = lobbyAnimationJson;
 
-            if (loadedJson != null)
-            {
-                CurrentSkin = loadedJson;
-                CurrentSkin.Path = CurrentSkinPathTextBox.Text;
-                if (!SkinValidator.ValidateAfterPathChange(CurrentSkinPathTextBox.Text, CurrentSkin)) return;
-                CurrentSkin.LobbyAnimationFolderPath = Path.Combine(CurrentSkin.SourcePath, "Lobby_Animation");
-                foreach (CharacterPart cp in CurrentSkin.CharacterParts)
-                {
-                    cp.PskPath = Path.Combine(CurrentSkin.MeshesPath, cp.Type, $"{cp.Psk}.psk");
-                    cp.PhysicsAssetJsonPaths = cp.PhysicsAssets.Select(phys => Path.Combine(CurrentSkin.PhysicsPath, cp.Type, $"{phys}.json")).ToList();
-                }
-            }
-            else
-            {
-                List<CharacterPart> characterParts = 
-                SkinFolderScanner.FindCharacterParts(CurrentSkin.MeshesPath, CurrentSkin.PhysicsPath, new List<CharacterPart>() { Body, Head, FaceAcc, Hat });
-                if (characterParts == null) return;
-                CurrentSkin.CharacterParts = characterParts;
+            List<Material> materials =
+            PskReader.GetMaterialData(CurrentSkin.CharacterParts.Select(cp => cp.PskPath).ToList(),
+            CurrentSkin.CharacterParts, allSwizzleCheckBox.IsChecked.Value, this);
 
-                (bool isValid, string lobbyAnimationPsa, string lobbyAnimationJson) = SkinFolderScanner.FindLobbyAnimationFiles(CurrentSkin.LobbyAnimationFolderPath);
-                if (!isValid) return;
-                CurrentSkin.LobbyAnimationPsa = lobbyAnimationPsa;
-                CurrentSkin.LobbyAnimationJson = lobbyAnimationJson;
+            if (materials == null) return;
+            CurrentSkin.Materials = new ObservableCollection<Material>(materials);
 
-                List<Material> materials = 
-                PskReader.GetMaterialData(CurrentSkin.CharacterParts.Select(cp => cp.PskPath).ToList(), 
-                CurrentSkin.CharacterParts, allSwizzleCheckBox.IsChecked.Value, this);
+            DefaultTextureSetup.CreateDefaultTextures(DefaultTextureSetup.FindMissingDefaultTextures(CurrentSkin.TexturesPath), CurrentSkin.TexturesPath);
+            if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
+            (string largeIcon, string smallIcon) = TextureCategorizer.GetIconTextures(CurrentSkin.TexturesPath, "skin");
+            if (largeIcon == null || smallIcon == null) return;
+            CurrentSkin.LargeIcon = largeIcon;
+            CurrentSkin.SmallIcon = smallIcon;
 
-                if (materials == null) return;
-                CurrentSkin.Materials = new ObservableCollection<Material>(materials);
-
-                DefaultTextureSetup.CreateDefaultTextures(DefaultTextureSetup.FindMissingDefaultTextures(CurrentSkin.TexturesPath), CurrentSkin.TexturesPath);
-                if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
-                (string largeIcon, string smallIcon) = TextureCategorizer.GetIconTextures(CurrentSkin.TexturesPath, "skin");
-                if (largeIcon == null || smallIcon == null) return;
-                CurrentSkin.LargeIcon = largeIcon;
-                CurrentSkin.SmallIcon = smallIcon;
-
-                CurrentSkin.Textures = TextureCategorizer.GetAllTextures(CurrentSkin.TexturesPath);
-                MaterialTextureAssigner.AssignTexturesToAllMaterials(CurrentSkin.TexturesPath, CurrentSkin.Codename, CurrentSkin.Materials);
-            }
-
+            CurrentSkin.Textures = TextureCategorizer.GetAllTextures(CurrentSkin.TexturesPath);
+            MaterialTextureAssigner.AssignTexturesToAllMaterials(CurrentSkin.TexturesPath, CurrentSkin.Codename, CurrentSkin.Materials);
             characterCIDTextBox.Text = CurrentSkin.CID;
-            CurrentSkin.PropertyChanged += (s, e) => SaveSkinConfig();
+            LoadSkinConfigInto(Path.Combine(CurrentSkin.Path, $"{CurrentSkin.Codename}_Settings.json"), CurrentSkin);
+            //CurrentSkin.Name = "Testing!";
             UpdateDropdowns();
+
+            CurrentSkin.PropertyChanged += (s, e) => SaveSkinConfig();
+            foreach (Material mat in CurrentSkin.Materials) mat.isLoading = false;
         }
 
         private async void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -754,6 +743,26 @@ namespace UFMT.UI
                 foreach (Material mat in CurrentSkin.Materials)
                 {
                     mat.TextureOptions = CurrentSkin.Textures;
+                    if (!mat.TextureOptions.Contains(mat.SelectedDiffuse))
+                    {
+                        Log.Error($"Diffuse texture '{mat.SelectedDiffuse}' on material '{mat.Name}' saved in skin's settings does not exist");
+                        mat.SelectedDiffuse = "Default_Diffuse";
+                    }
+                    if (!mat.TextureOptions.Contains(mat.SelectedMask))
+                    {
+                        Log.Error($"Mask texture '{mat.SelectedMask}' on material '{mat.Name}' saved in skin's settings does not exist");
+                        mat.SelectedMask = "Default_Mask";
+                    }
+                    if (!mat.TextureOptions.Contains(mat.SelectedNormal))
+                    {
+                        Log.Error($"Normal texture '{mat.SelectedNormal}' on material '{mat.Name}' saved in skin's settings does not exist");
+                        mat.SelectedNormal = "Default_Normal";
+                    }
+                    if (!mat.TextureOptions.Contains(mat.SelectedSpecular))
+                    {
+                        Log.Error($"Specular texture '{mat.SelectedSpecular}' on material '{mat.Name}' saved in skin's settings does not exist");
+                        mat.SelectedSpecular = "Default_Specular";
+                    }
                 }
 
                 DynamicExpanderList.ItemsSource = CurrentSkin.Materials;
@@ -811,7 +820,7 @@ namespace UFMT.UI
             }
             catch (Exception ex)
             {
-                Log.Error(ex.Message);
+                Log.Error($"An error occured while trying to update dropdowns! {ex}");
             }
             SmallIconComboBox.Items.Clear();
             LargeIconComboBox.Items.Clear();
@@ -861,12 +870,6 @@ namespace UFMT.UI
                 iconPreviewCh1.Source = iconBitmap;
             }
             Console.WriteLine("Successfully updated the preview image!");
-        }
-
-        private void ResetCpData()
-        {
-            CurrentSkin = new SkinData();
-            UpdateDropdowns();
         }
 
         private SkinData LoadSkinConfig(string jsonPath)
@@ -956,18 +959,237 @@ namespace UFMT.UI
 
             return loadedSkin;
         } // TODO: This method should only load the data that doesn't have JsonIgnore, right now it loads everything from the .json 
-                                                            // as a new SkinData object, so everything that had JsonIgnore has the default value assigned in the class, so to avoid 
-                                                            // getting null objects, reassigning the variables that had JsonIgnore is mandatory at the moment.
+          // as a new SkinData object, so everything that had JsonIgnore has the default value assigned in the class, so to avoid 
+          // getting null objects, reassigning the variables that had JsonIgnore is mandatory at the moment.
+
+        private void LoadSkinConfigInto(string jsonPath, SkinData target)
+        {
+            if (!File.Exists(jsonPath) || target == null) return;
+
+            string jsonString = File.ReadAllText(jsonPath);
+            var node = System.Text.Json.Nodes.JsonNode.Parse(jsonString)?.AsObject();
+            if (node == null) return;
+
+            if (node.ContainsKey("CodeName") && !node.ContainsKey("Codename"))
+            {
+                var value = node["CodeName"];
+                node.Remove("CodeName");
+                node["Codename"] = value;
+            }
+
+            if (node.ContainsKey("Series") && node["Series"]?.ToString() != "None")
+            {
+                string currentSeries = node["Series"].ToString();
+                if (currentSeries == "+Add")
+                {
+                    node["Series"] = "None";
+                }
+                else if (!seriesComboBox.Items.Contains(currentSeries))
+                {
+                    seriesComboBox.Items.Insert(seriesComboBox.Items.Count - 1, currentSeries);
+                    Console.WriteLine($"Detected new series on the loaded skin, added \"{currentSeries}\"");
+                }
+            }
+
+            if (node.ContainsKey("CharacterParts") && node["CharacterParts"] is System.Text.Json.Nodes.JsonArray parts)
+            {
+                foreach (var part in parts)
+                {
+                    if (part is System.Text.Json.Nodes.JsonObject partObj)
+                    {
+                        if (partObj.ContainsKey("Type"))
+                        {
+                            string typeValue = partObj["Type"]?.ToString();
+                            if (!string.IsNullOrEmpty(typeValue))
+                            {
+                                partObj["Type"] = char.ToUpper(typeValue[0]) + typeValue.Substring(1);
+                            }
+                        }
+
+                        if (partObj.ContainsKey("PskPath"))
+                        {
+                            string pathValue = partObj["PskPath"]?.ToString();
+                            partObj.Remove("PskPath");
+                            partObj["Psk"] = !string.IsNullOrEmpty(pathValue) ? System.IO.Path.GetFileNameWithoutExtension(pathValue) : "";
+                        }
+
+                        if (partObj.ContainsKey("PhysicsAssetJsonPaths"))
+                        {
+                            string[] jsonNames = partObj["PhysicsAssetJsonPaths"]?.AsArray().Select(json => Path.GetFileNameWithoutExtension(json.ToString())).ToArray();
+                            partObj.Remove("PhysicsAssetJsonPaths");
+                            partObj["PhysicsAssets"] = System.Text.Json.JsonSerializer.SerializeToNode(jsonNames);
+                        }
+                    }
+                }
+            }
+
+            var loadedSkin = System.Text.Json.JsonSerializer.Deserialize<SkinData>(node.ToJsonString());
+            if (loadedSkin == null) return;
+
+            foreach (var prop in typeof(SkinData).GetProperties())
+            {
+                if (!prop.CanWrite || prop.IsDefined(typeof(JsonIgnoreAttribute), false) || prop.Name == "Materials")
+                    continue;
+
+                var val = prop.GetValue(loadedSkin);
+                prop.SetValue(target, val);
+            }
+
+            try
+            {
+                if (target.Materials != null && loadedSkin.Materials != null)
+                {
+                    foreach (var existingMat in target.Materials)
+                    {
+                        existingMat.ParentPage = this;
+                        var jsonMat = loadedSkin.Materials.FirstOrDefault(mat => mat?.Name == existingMat.Name);
+                        if (jsonMat != null)
+                        {
+                            existingMat.Swizzle = jsonMat.Swizzle;
+                            existingMat.UseSkinBoostColor = jsonMat.UseSkinBoostColor;
+                            existingMat.SbcRed = jsonMat.SbcRed;
+                            existingMat.SbcBlue = jsonMat.SbcBlue;
+                            existingMat.SbcGreen = jsonMat.SbcGreen;
+                            existingMat.SbcAlpha = jsonMat.SbcAlpha;
+
+                            string jsonSelectedDiffuse = jsonMat.JsonSelectedDiffuse ?? jsonMat.SelectedDiffuse; // for old jsons that still contain SelectedDiffuse
+                            if (target.Textures.Contains(jsonSelectedDiffuse))
+                            {
+                                existingMat.SelectedDiffuse = jsonSelectedDiffuse;
+                                existingMat.JsonSelectedDiffuse = jsonSelectedDiffuse;
+                            }
+                            else
+                            {
+                                Log.Error($"Diffuse texture '{jsonSelectedDiffuse}' on material '{jsonMat.Name}' saved in settings JSON does not exist.");
+                                existingMat.SelectedDiffuse = "Default_Diffuse";
+                                existingMat.JsonSelectedDiffuse = jsonSelectedDiffuse;
+                            }
+
+                            string jsonSelectedMask = jsonMat.JsonSelectedMask ?? jsonMat.SelectedMask;
+                            if (target.Textures.Contains(jsonSelectedMask))
+                            {
+                                existingMat.SelectedMask = jsonSelectedMask;
+                                existingMat.JsonSelectedMask = jsonSelectedMask;
+                            }
+                            else
+                            {
+                                Log.Error($"Mask texture '{jsonSelectedMask}' on material '{jsonMat.Name}' saved in settings JSON does not exist.");
+                                existingMat.SelectedMask = "Default_Mask";
+                                existingMat.JsonSelectedMask = jsonSelectedMask;
+                            }
+
+                            string jsonSelectedNormal = jsonMat.JsonSelectedNormal ?? jsonMat.SelectedNormal;
+                            if (target.Textures.Contains(jsonSelectedNormal))
+                            {
+                                existingMat.SelectedNormal = jsonSelectedNormal;
+                                existingMat.JsonSelectedNormal = jsonSelectedNormal;
+                            }
+                            else
+                            {
+                                Log.Error($"Normal texture '{jsonSelectedNormal}' on material '{jsonMat.Name}' saved in settings JSON does not exist.");
+                                existingMat.SelectedNormal = "Default_Normal";
+                                existingMat.JsonSelectedNormal = jsonSelectedNormal;
+                            }
+
+                            string jsonSelectedSpecular = jsonMat.JsonSelectedSpecular ?? jsonMat.SelectedSpecular;
+                            if (target.Textures.Contains(jsonSelectedSpecular))
+                            {
+                                existingMat.SelectedSpecular = jsonSelectedSpecular;
+                                existingMat.JsonSelectedSpecular = jsonSelectedSpecular;
+                            }
+                            else
+                            {
+                                Log.Error($"Specular texture '{jsonSelectedSpecular}' on material '{jsonMat.Name}' saved in settings JSON does not exist.");
+                                existingMat.SelectedSpecular = "Default_Specular";
+                                existingMat.JsonSelectedSpecular = jsonSelectedSpecular;
+                            }
+                        }
+                        else
+                        {
+                            Log.Error($"Material {existingMat.Name} was not found in skin's settings!");
+                        }
+                    }
+                }
+
+                if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+            }
+        }
+
+        private void LoadSkinConfigIntoTest(string jsonPath, SkinData target)
+        {
+            if (target == null)
+            {
+                Console.WriteLine("[TEST] Target SkinData is null!");
+                return;
+            }
+
+            if (!File.Exists(jsonPath))
+            {
+                Console.WriteLine($"[TEST] File does not exist at path: {jsonPath}");
+                return;
+            }
+
+            string jsonString = File.ReadAllText(jsonPath);
+            Console.WriteLine($"[TEST] Raw JSON Content: {jsonString}");
+
+            var node = System.Text.Json.Nodes.JsonNode.Parse(jsonString)?.AsObject();
+            if (node == null)
+            {
+                Console.WriteLine("[TEST] JsonNode.Parse returned null or is not a JsonObject.");
+                return;
+            }
+
+            // Case-insensitive key search to catch "name", "Name", "displayName", etc.
+            var nameKvp = node.FirstOrDefault(kvp => kvp.Key.Equals("Name", StringComparison.OrdinalIgnoreCase));
+
+            if (nameKvp.Value != null)
+            {
+                target.Name = nameKvp.Value.ToString();
+                Console.WriteLine($"[TEST] Successfully set Name to: {target.Name} (Found JSON Key: \"{nameKvp.Key}\")");
+            }
+            else
+            {
+                Console.WriteLine("[TEST] Could not find any property matching 'Name' in the JSON keys:");
+                foreach (var key in node.Select(kvp => kvp.Key))
+                {
+                    Console.WriteLine($" -> Key present in JSON: \"{key}\"");
+                }
+            }
+        }
+
+        private static readonly JsonSerializerOptions SaveOptions = new()
+        {
+            WriteIndented = true,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers =
+        {
+            typeInfo =>
+            {
+                if (typeInfo.Type != typeof(Material)) return;
+                foreach (var prop in typeInfo.Properties)
+                {
+                    if (prop.Name is "SelectedDiffuse" or "SelectedMask"
+                                  or "SelectedNormal" or "SelectedSpecular")
+                        prop.ShouldSerialize = (_, _) => false;
+                }
+            }
+        }
+            }
+        };
         public void SaveSkinConfig()
         {
             if (CurrentSkin == null || string.IsNullOrEmpty(CurrentSkin.Path)) return;
 
             string jsonPath = Path.Combine(CurrentSkin.Path, $"{CurrentSkin.Codename}_Settings.json");
-            var options = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-            string jsonString = System.Text.Json.JsonSerializer.Serialize(CurrentSkin, options);
+            string jsonString = System.Text.Json.JsonSerializer.Serialize(CurrentSkin, SaveOptions);
 
             File.WriteAllText(jsonPath, jsonString);
-        } 
+        }
 
         public void SaveSeries(IObservableVector<object> sender, IVectorChangedEventArgs e)
         {
@@ -977,6 +1199,7 @@ namespace UFMT.UI
 
     public class SkinData : INotifyPropertyChanged
     {
+        [JsonIgnore]
         public string Codename { get; set; } = string.Empty;
         private string _name = string.Empty;
         public string Name
@@ -1088,27 +1311,32 @@ namespace UFMT.UI
             }
 
         }
+        [JsonIgnore]
         public string LobbyAnimationPsa { get; set; } = string.Empty;
+        [JsonIgnore]
         public string LobbyAnimationJson { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string LobbyAnimationFbx { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string OutputContentPath { get; set; } = string.Empty;
         public ObservableCollection<Material> Materials { get; set; } = new();
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string Path = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string SourcePath { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string MeshesPath { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string TexturesPath { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public string PhysicsPath { get; set; } = string.Empty;
-        [System.Text.Json.Serialization.JsonIgnore] 
+        [JsonIgnore]
         public string LobbyAnimationFolderPath { get; set; } = string.Empty;
+        [JsonIgnore]
         public float LobbyAnimationLength { get; set; } = 0;
+        [JsonIgnore]
         public List<CharacterPart> CharacterParts { get; set; } = new();
+        [JsonIgnore]
         public List<string> Textures { get; set; } = new();
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -1126,10 +1354,13 @@ namespace UFMT.UI
 
     public class Material : INotifyPropertyChanged
     {
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
+        public bool isLoading = true;
+        [JsonIgnore]
         public Windows.Globalization.NumberFormatting.DecimalFormatter DotFormatter { get; } =
             new Windows.Globalization.NumberFormatting.DecimalFormatter(new[] { "en-US" }, "US");
         public string Name { get; set; }
+        [JsonIgnore]
         public List<string> TextureOptions { get; set; }
         private string _selectedDiffuse = "Default_Diffuse";
         public string SelectedDiffuse
@@ -1140,6 +1371,8 @@ namespace UFMT.UI
                 if (_selectedDiffuse != value)
                 {
                     _selectedDiffuse = value;
+                    JsonSelectedDiffuse = value;
+                    Log.Test($"On property called by selected diffuse on material {Name}");
                     OnPropertyChanged();
 
                     if (!string.IsNullOrEmpty(value) && value.Length > 0)
@@ -1156,6 +1389,7 @@ namespace UFMT.UI
                 }
             }
         }
+        public string JsonSelectedDiffuse { get; set; }
 
         private string _selectedMask = "Default_Mask";
         public string SelectedMask
@@ -1166,10 +1400,12 @@ namespace UFMT.UI
                 if (_selectedMask != value)
                 {
                     _selectedMask = value;
+                    JsonSelectedMask = value;
                     OnPropertyChanged();
                 }
             }
         }
+        public string JsonSelectedMask { get; set; }
 
         private string _selectedNormal = "Default_Normal";
         public string SelectedNormal
@@ -1180,10 +1416,12 @@ namespace UFMT.UI
                 if (_selectedNormal != value)
                 {
                     _selectedNormal = value;
+                    JsonSelectedNormal = value;
                     OnPropertyChanged();
                 }
             }
         }
+        public string JsonSelectedNormal { get; set; }
 
         private string _selectedSpecular = "Default_Specular";
         public string SelectedSpecular
@@ -1194,10 +1432,12 @@ namespace UFMT.UI
                 if (_selectedSpecular != value)
                 {
                     _selectedSpecular = value;
+                    JsonSelectedSpecular = value;
                     OnPropertyChanged();
                 }
             }
         }
+        public string JsonSelectedSpecular { get; set; }
 
         private bool _useSkinBoostColor = false;
         public bool UseSkinBoostColor
@@ -1329,7 +1569,7 @@ namespace UFMT.UI
                 OnPropertyChanged();
             }
         }
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public SkinsPage ParentPage { get; set; }
 
         private bool _swizzle = false;
@@ -1347,14 +1587,14 @@ namespace UFMT.UI
             }
         }
 
-        [System.Text.Json.Serialization.JsonIgnore]
+        [JsonIgnore]
         public CharacterPart Cp { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            ParentPage?.SaveSkinConfig();
+            if (!isLoading) ParentPage?.SaveSkinConfig();
         }
 
         public Material Clone()
