@@ -466,8 +466,6 @@ namespace UFMT.UI
             }
 
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text));
-            Log.Success($"Successfully created {CodenameFolderCreateTextBox.Text} folder at " +
-            $"{SkinsPathTextBox.Text}");
             
             string[] cpTypes = {"Body", "Head", "Faceacc", "Hat" };
             string[] cpTypeFolders = {"Meshes", "Physics" };
@@ -477,25 +475,21 @@ namespace UFMT.UI
                 {
                     Directory.CreateDirectory(Path.Combine
                     (SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", cpTypeFolder, cpType));
-                    Log.Success($"Successfully created {cpType} folder at " +
-                    $"{Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", cpTypeFolder)}");
                 }
             }
 
             Directory.CreateDirectory(Path.Combine
             (SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Textures"));
-            Log.Success($"Successfully created Textures folder at " +
-            $"{Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source")}");
 
             Directory.CreateDirectory(Path.Combine
             (SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Lobby_Animation"));
-            Log.Success($"Successfully created Lobby_Animation folder at " +
-            $"{Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source")}");
 
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Fbx"));
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Fbx", "Body"));
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Fbx", "Head"));
 
+            Log.Success($"Successfully created skin folder {CodenameFolderCreateTextBox.Text} at {SkinsPathTextBox.Text}");
+            System.Diagnostics.Process.Start("explorer.exe", Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text));
             args.Cancel = false;
         }
 

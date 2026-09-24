@@ -275,16 +275,15 @@ namespace UFMT.UI
             }
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text));
-            Log.Success($"Successfully created {CodenameFolderCreateTextBox.Text} folder at {EmotesPathTextBox.Text}");
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Animations"));
-            Log.Success($"Successfully created Animations folder at {Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source")}");
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound"));
-            Log.Success($"Successfully created Sound folder at {Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source")}");
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Icons"));
-            Log.Success($"Successfully created Icons folder at {Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source")}");
+
+            Log.Success($"Successfully created emote folder {CodenameFolderCreateTextBox.Text} at {EmotesPathTextBox.Text}");
+            System.Diagnostics.Process.Start("explorer.exe", Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text));
 
             args.Cancel = false;
         }
