@@ -872,96 +872,6 @@ namespace UFMT.UI
             Console.WriteLine("Successfully updated the preview image!");
         }
 
-        private SkinData LoadSkinConfig(string jsonPath)
-        {
-            string filePath = jsonPath;
-
-            if (!File.Exists(filePath)) return null;
-
-            string jsonString = File.ReadAllText(filePath);
-
-            var node = System.Text.Json.Nodes.JsonNode.Parse(jsonString)?.AsObject();
-            // Change legacy "CodeName" to new "Codename"
-            if (node != null && node.ContainsKey("CodeName") && !node.ContainsKey("Codename"))
-            {
-                var value = node["CodeName"];
-                node.Remove("CodeName");
-                node["Codename"] = value;
-                jsonString = node.ToJsonString();
-            }
-
-            // Just in case the user closed the program when +Add was selected
-            if (node != null && node.ContainsKey("Series") && node["Series"].ToString() != "None")
-            {
-                string currentSeries = node["Series"].ToString();
-                if (currentSeries == "+Add") node["Series"] = "None";
-                else if (!seriesComboBox.Items.Contains(currentSeries)) 
-                {
-                    seriesComboBox.Items.Insert(seriesComboBox.Items.Count-1, currentSeries);
-                    Console.WriteLine($"Detected new series on the loaded skin, added \"{currentSeries}\"");
-                }
-            }  
-
-            // To prevent legacy .json files crashing the program, I applied these changes:
-            // Capitalize CharacterPart Type
-            // Convert PskPath (full path) to Psk (filename only)
-            // Convert PhysicsAssetJsonPaths to PhysicsAssets (filenames only)
-            if (node.ContainsKey("CharacterParts") && node["CharacterParts"] is System.Text.Json.Nodes.JsonArray parts)
-            {
-                foreach (var part in parts)
-                {
-                    if (part is System.Text.Json.Nodes.JsonObject partObj)
-                    {
-                        if (partObj.ContainsKey("Type"))
-                        {
-                            string typeValue = partObj["Type"]?.ToString();
-                            if (!string.IsNullOrEmpty(typeValue))
-                            {
-                                partObj["Type"] = char.ToUpper(typeValue[0]) + typeValue.Substring(1);
-                            }
-                        }
-
-                        if (partObj.ContainsKey("PskPath"))
-                        {
-                            string pathValue = partObj["PskPath"]?.ToString();
-                            partObj.Remove("PskPath");
-                            partObj["Psk"] = !string.IsNullOrEmpty(pathValue) ? System.IO.Path.GetFileNameWithoutExtension(pathValue) : "";
-                        }
-
-                        if (partObj.ContainsKey("PhysicsAssetJsonPaths"))
-                        {
-                            string[] jsonNames = partObj["PhysicsAssetJsonPaths"]?.AsArray().Select(json => Path.GetFileNameWithoutExtension(json.ToString())).ToArray();
-                            partObj.Remove("PhysicsAssetJsonPaths");
-                            partObj["PhysicsAssets"] = System.Text.Json.JsonSerializer.SerializeToNode(jsonNames);
-                        }
-                    }
-                }
-                jsonString = node.ToJsonString();
-            }
-
-            SkinData loadedSkin = System.Text.Json.JsonSerializer.Deserialize<SkinData>(jsonString);
-
-            try
-            {
-                // Reconstruct the ignored ParentPage and Cp properties for the UI
-                foreach (var mat in loadedSkin.Materials)
-                {
-                    mat.ParentPage = this;
-                    mat.Cp = loadedSkin.CharacterParts.FirstOrDefault(cp => cp.Type == mat.Cp?.Type);
-                }
-
-                if (CurrentFnVersion.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(CurrentSkin.TexturesPath);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex.Message);
-            }
-
-            return loadedSkin;
-        } // TODO: This method should only load the data that doesn't have JsonIgnore, right now it loads everything from the .json 
-          // as a new SkinData object, so everything that had JsonIgnore has the default value assigned in the class, so to avoid 
-          // getting null objects, reassigning the variables that had JsonIgnore is mandatory at the moment.
-
         private void LoadSkinConfigInto(string jsonPath, SkinData target)
         {
             if (!File.Exists(jsonPath) || target == null) return;
@@ -1116,48 +1026,6 @@ namespace UFMT.UI
             catch (Exception ex)
             {
                 Log.Error(ex.Message);
-            }
-        }
-
-        private void LoadSkinConfigIntoTest(string jsonPath, SkinData target)
-        {
-            if (target == null)
-            {
-                Console.WriteLine("[TEST] Target SkinData is null!");
-                return;
-            }
-
-            if (!File.Exists(jsonPath))
-            {
-                Console.WriteLine($"[TEST] File does not exist at path: {jsonPath}");
-                return;
-            }
-
-            string jsonString = File.ReadAllText(jsonPath);
-            Console.WriteLine($"[TEST] Raw JSON Content: {jsonString}");
-
-            var node = System.Text.Json.Nodes.JsonNode.Parse(jsonString)?.AsObject();
-            if (node == null)
-            {
-                Console.WriteLine("[TEST] JsonNode.Parse returned null or is not a JsonObject.");
-                return;
-            }
-
-            // Case-insensitive key search to catch "name", "Name", "displayName", etc.
-            var nameKvp = node.FirstOrDefault(kvp => kvp.Key.Equals("Name", StringComparison.OrdinalIgnoreCase));
-
-            if (nameKvp.Value != null)
-            {
-                target.Name = nameKvp.Value.ToString();
-                Console.WriteLine($"[TEST] Successfully set Name to: {target.Name} (Found JSON Key: \"{nameKvp.Key}\")");
-            }
-            else
-            {
-                Console.WriteLine("[TEST] Could not find any property matching 'Name' in the JSON keys:");
-                foreach (var key in node.Select(kvp => kvp.Key))
-                {
-                    Console.WriteLine($" -> Key present in JSON: \"{key}\"");
-                }
             }
         }
 
@@ -1372,7 +1240,6 @@ namespace UFMT.UI
                 {
                     _selectedDiffuse = value;
                     JsonSelectedDiffuse = value;
-                    Log.Test($"On property called by selected diffuse on material {Name}");
                     OnPropertyChanged();
 
                     if (!string.IsNullOrEmpty(value) && value.Length > 0)
