@@ -31,7 +31,7 @@ namespace UFMT.Blender
                 Log.Error($"Failed to find character part head fbx! \"{fbxFilePath}\" does not exist or is not an .fbx file!");
                 return false;
             }
-
+            Console.WriteLine($"Combining shape keys for {Path.GetFileNameWithoutExtension(fbxFilePath)}");
             ProcessStartInfo psi = new ProcessStartInfo(App.Settings.BlenderPath, $"-b --python \"{CombineShapeKeysScript}\" -- \"{fbxFilePath}\"")
             {
                 RedirectStandardOutput = true,
