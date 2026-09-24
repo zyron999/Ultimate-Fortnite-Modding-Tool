@@ -281,7 +281,7 @@ namespace UFMT.FnAssets
             hsExport0.ObjectName.Value.Value = $"HS_{codename}";
 
             currentHs.Write(Path.Combine(contentFolderPath, $"HS_{codename}.uasset"));
-            Log.Success($"Successfuly edited HS_{codename}.uasset and HS_{codename}.uexp");
+            Log.Success($"Successfully edited HS_{codename}.uasset and HS_{codename}.uexp");
         }
 
         internal static void CreateLobbyAnimationMontage(string contentFolderPath, string codename, string lobbyAnimationPsa, string lobbyAnimationJson, float lobbyAnimationLength, 
@@ -327,7 +327,7 @@ namespace UFMT.FnAssets
                 floatCurves.Value = curveList.ToArray();
             }
             currentIdleAnimation.Write(idleAnimationUassetPath);
-            Log.Success($"Successfuly edited {codename}_Idle_Montage.uasset");
+            Log.Success($"Successfully edited {codename}_Idle_Montage.uasset");
         }
 
         internal static void CreateHero(string contentFolderPath, string codename, string gender, string smallIcon, string largeIcon, FnVersion fnVersion, 
@@ -363,7 +363,7 @@ namespace UFMT.FnAssets
             $"{ueSkinsPackagePath}/{codename}/Animations/{codename}_Idle_Montage.{codename}_Idle_Montage";
 
             currentHid.Write(hidUassetPath);
-            Log.Success($"Successfuly edited HID_{codename}.uasset and HID_{codename}.uexp");
+            Log.Success($"Successfully edited HID_{codename}.uasset and HID_{codename}.uexp");
 
         }
 
@@ -428,7 +428,7 @@ namespace UFMT.FnAssets
             }
 
             currentCid.Write(cidUassetPath);
-            Log.Success($"Successfuly edited {cid}.uasset");
+            Log.Success($"Successfully edited {cid}.uasset");
         }
     }
 }

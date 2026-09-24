@@ -48,7 +48,7 @@ namespace UFMT.MaterialTextureAssignment
 
                 bmp.UnlockBits(bmpData);
                 bmp.Save(Path.Combine(texturesPath, "Swizzled", Path.GetFileName(texPath)));
-                Log.Success($"Successfuly Swizzled {Path.GetFileName(texPath)}!");
+                Log.Success($"Successfully Swizzled {Path.GetFileName(texPath)}!");
             });
         }
     }

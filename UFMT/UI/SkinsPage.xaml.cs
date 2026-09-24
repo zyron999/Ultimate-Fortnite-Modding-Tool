@@ -318,7 +318,7 @@ namespace UFMT.UI
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
-
+            SkinLobbyAnimationJsonEditor.RemoveControlExpressions(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationJson}.json"));
             if (fnVer.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(exportSkin.TexturesPath, exportSkin.Materials.Select(mat => mat.SelectedSpecular).ToArray());
 
             string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
