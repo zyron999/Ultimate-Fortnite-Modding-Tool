@@ -24,38 +24,28 @@ namespace UFMT.UnrealEngine
                 string mediumLodSettingsFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings");
                 string mediumLodSettingsFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings", "Medium_Player_LODSettings.uasset");
                 string accessoriesFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories");
-                string accessoriesFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
+                string accessoriesSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
+                string baseTailSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "FORT_Tails", "Common",
+                "Fortnite_Base_Tail_Skeleton.uasset");
 
                 await AddOrReplaceUeAsset(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "FakeCID.uasset"));
-                if (!Directory.Exists(BaseMeshSkeletonPath)) Directory.CreateDirectory(Path.GetDirectoryName(BaseMeshSkeletonPath));
                 await AddOrReplaceUeAsset(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
                 await AddOrReplaceUeAsset(BaseMeshPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMesh.uasset"));
                 if (Directory.Exists(cookedCodenamePath)) Directory.Delete(cookedCodenamePath, true);
-                if (!Directory.Exists(baseHeadPath))
-                {
-                    Directory.CreateDirectory(baseHeadPath);
-                }
-                if (!Directory.Exists(mediumLodSettingsFolderPath))
-                {
-                    Directory.CreateDirectory(mediumLodSettingsFolderPath);
-                }
                 await AddOrReplaceUeAsset(mediumLodSettingsFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Medium_Player_LODSettings.uasset"));
                 foreach (string fileName in baseHeadFileNames)
                 {
                     string filePath = Path.Combine(baseHeadPath, $"{fileName}");
                     await AddOrReplaceUeAsset(filePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", fileName));
                 }
-
-                if (!Directory.Exists(accessoriesFolderPath))
-                {
-                    Directory.CreateDirectory(accessoriesFolderPath);
-                }
-                await AddOrReplaceUeAsset(accessoriesFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
+                await AddOrReplaceUeAsset(accessoriesSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
+                await AddOrReplaceUeAsset(baseTailSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_Skeleton.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
                 Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(pluginPath)}...");
                 await Task.Run(() => ZipFile.ExtractToDirectory(physicsImporterPath, pluginPath));
                 Console.WriteLine($"Replaced/Added {Path.GetFileNameWithoutExtension(physicsImporterPath)}");
+
                 Log.Success($"Succesfully Added/Replaced required assets in UE");
                 return true;
             }
@@ -70,7 +60,7 @@ namespace UFMT.UnrealEngine
         {
             string fileFolderPath = Path.GetDirectoryName(filePath);
             string fileName = Path.GetFileName(filePath);
-            if (!File.Exists(fileFolderPath)) Directory.CreateDirectory(fileFolderPath);
+            if (!Directory.Exists(fileFolderPath)) Directory.CreateDirectory(fileFolderPath);
             Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(filePath)}...");
             await File.WriteAllBytesAsync(filePath, fileInBytes);
             Console.WriteLine($"Replaced/Added {fileName}");

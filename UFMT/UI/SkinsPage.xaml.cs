@@ -43,6 +43,7 @@ namespace UFMT.UI
         CharacterPart Head;
         CharacterPart FaceAcc;
         CharacterPart Hat;
+        CharacterPart Charm;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private SkinData _currentSkin;
@@ -159,6 +160,10 @@ namespace UFMT.UI
             {
                 Type = "Hat",
             };
+            Charm = new CharacterPart
+            {
+                Type = "Charm",
+            };
 
             if (CurrentUeVersion.ReplaceDefaultEngineIni)
             {
@@ -199,13 +204,17 @@ namespace UFMT.UI
             CurrentSkin = new SkinData();
             UpdateDropdowns();
             if (!SkinValidator.ValidateAfterPathChange(CurrentSkinPathTextBox.Text, CurrentSkin)) return;
+            // Add new charm character part to the meshes folder if it doesn't already exist since skin folders created by older versions of UFMT don't have it
+            string meshesCharmPath = Path.Combine(CurrentSkin.MeshesPath, "Charm");
+            if (!Path.Exists(meshesCharmPath)) Directory.CreateDirectory(meshesCharmPath);
+            Console.WriteLine($"Added new Charm folder to '{CurrentSkin.MeshesPath}'!");
 
             OutputFnGamePath = Path.Combine(CurrentSkin.Path, "Output", App.Settings.FnVersion, "FortniteGame");
             CurrentSkin.Codename = new DirectoryInfo(CurrentSkin.Path).Name;
             CurrentSkin.CID = $"CID_{CurrentSkin.Codename}";
 
             List<CharacterPart> characterParts = 
-            SkinFolderScanner.FindCharacterParts(CurrentSkin.MeshesPath, CurrentSkin.PhysicsPath, new List<CharacterPart>() { Body, Head, FaceAcc, Hat });
+            SkinFolderScanner.FindCharacterParts(CurrentSkin.MeshesPath, CurrentSkin.PhysicsPath, new List<CharacterPart>() { Body, Head, FaceAcc, Hat, Charm });
             if (characterParts == null) return;
             CurrentSkin.CharacterParts = characterParts;
 
@@ -380,7 +389,7 @@ namespace UFMT.UI
 
             SkinAssetCreator.CreateMaterials(contentFolderPath, exportSkin.Codename, exportSkin.Materials, fnVer, ueVer.UassetApiEngineVer, ueSkinsPackagePath);
 
-            SkinAssetCreator.CreateHeroSpecialization(contentFolderPath, exportSkin.Codename, exportSkin.CharacterParts, fnVer, ueVer.UassetApiEngineVer, ueSkinsPackagePath);
+            if (!SkinAssetCreator.CreateHeroSpecialization(contentFolderPath, exportSkin.Codename, exportSkin.CharacterParts, fnVer, ueVer.UassetApiEngineVer, ueSkinsPackagePath)) return;
 
             SkinAssetCreator.CreateLobbyAnimationMontage(contentFolderPath, exportSkin.Codename, exportSkin.LobbyAnimationPsa, exportSkin.LobbyAnimationJson,
             exportSkin.LobbyAnimationLength, fnVer, ueVer.UassetApiEngineVer, ueSkinsPackagePath);
@@ -468,16 +477,16 @@ namespace UFMT.UI
 
             Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text));
             
-            string[] cpTypes = {"Body", "Head", "Faceacc", "Hat" };
-            string[] cpTypeFolders = {"Meshes", "Physics" };
+            string[] cpTypes = {"Body", "Head", "Faceacc", "Hat", "Charm"};
             foreach (string cpType in cpTypes)
             {
-                foreach (string cpTypeFolder in cpTypeFolders)
-                {
-                    Directory.CreateDirectory(Path.Combine
-                    (SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", cpTypeFolder, cpType));
-                }
+                Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Meshes", cpType));
             }
+
+            // Don't create physics folders for head or charms since they don't have any physics
+            Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Physics", "Body"));
+            Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Physics", "FaceAcc"));
+            Directory.CreateDirectory(Path.Combine(SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Physics", "Hat"));
 
             Directory.CreateDirectory(Path.Combine
             (SkinsPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Textures"));
@@ -1051,7 +1060,6 @@ namespace UFMT.UI
 
             File.WriteAllText(jsonPath, jsonString);
         }
-
         public void SaveSeries(IObservableVector<object> sender, IVectorChangedEventArgs e)
         {
             AppSettings.SetValue("AvailableSeries", seriesComboBox.Items);

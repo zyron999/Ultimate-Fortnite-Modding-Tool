@@ -23,7 +23,6 @@ namespace UFMT.UnrealEngine
                 List<string> normalTexturePaths = new();
                 List<string> specularTexturePaths = new();
                 List<string> iconTexturePaths = new();
-                CharacterPart hatCp = characterParts.FirstOrDefault(cp => cp.Type == "Hat");
 
                 if (smallIcon != string.Empty && largeIcon != string.Empty)
                 {
@@ -64,6 +63,7 @@ namespace UFMT.UnrealEngine
                     Path.Combine(sourcePath, "Lobby_Animation", $"{lobbyAnimationJson}.json"),
                     HeadMeshName = Path.GetFileNameWithoutExtension(characterParts.FirstOrDefault(cp => cp.Type == "Head").FbxPath),
                     HatMeshName = Path.GetFileNameWithoutExtension(characterParts.FirstOrDefault(cp => cp.Type == "Hat")?.FbxPath),
+                    CharmMeshName = Path.GetFileNameWithoutExtension(characterParts.FirstOrDefault(cp => cp.Type == "Charm")?.FbxPath),
                     CurrentFnVersion = App.Settings.FnVersion,
                     UeSkinsPackagePath = ueSkinsPackagePath
                 };

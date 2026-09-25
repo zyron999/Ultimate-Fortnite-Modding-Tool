@@ -137,6 +137,7 @@ namespace UFMT.FnAssets
                 CharacterPart head = characterParts.FirstOrDefault(cp => cp.Type == "Head");
                 CharacterPart faceacc = characterParts.FirstOrDefault(cp => cp.Type == "Faceacc");
                 CharacterPart hat = characterParts.FirstOrDefault(cp => cp.Type == "Hat");
+                CharacterPart charm = characterParts.FirstOrDefault(cp => cp.Type == "Charm");
                 if (!Path.Exists(characterPartsPath)) Directory.CreateDirectory(characterPartsPath);
 
                 if (gender == "Female")
@@ -170,6 +171,12 @@ namespace UFMT.FnAssets
                     hat.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHat.uexp");
                 }
 
+                if (charm != null)
+                {
+                    charm.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpCharm.uasset");
+                    charm.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpCharm.uexp");
+                }
+
                 foreach (CharacterPart cp in characterParts)
                 {
                     Console.WriteLine($"Currently editing the {cp.Type} of the skin");
@@ -190,9 +197,10 @@ namespace UFMT.FnAssets
                         string animBpPath;
                         if (cp.Type == "Head")
                         {
-                            if (fnVersion.Name == "9.41") animBpPath = $"/Game/Modding/Base_Head/Base_Head_Modding_AnimBP.Base_Head_Modding_AnimBP_C";
-                            else animBpPath = $"/Game/Base/Head/Skeleton/Base_Head_AnimBP.Base_Head_AnimBP_C";
+                            if (fnVersion.Name == "9.41") animBpPath = "/Game/Modding/Base_Head/Base_Head_Modding_AnimBP.Base_Head_Modding_AnimBP_C";
+                            else animBpPath = "/Game/Base/Head/Skeleton/Base_Head_AnimBP.Base_Head_AnimBP_C";
                         }
+                        else if (cp.Type == "Charm") animBpPath = "/Game/Accessories/FORT_Tails/Common/Fortnite_Base_Tail_AnimBP.Fortnite_Base_Tail_AnimBP_C";
                         else animBpPath = $"{ueSkinsPackagePath}/{codename}/Meshes/{codename}_{cp.Type}_AnimBP.{codename}_{cp.Type}_AnimBP_C";
 
                         var animBpData = (SoftObjectPropertyData)cpExport0["AnimClass"];
@@ -216,27 +224,28 @@ namespace UFMT.FnAssets
             }
         }
 
-        internal static void CreateHeroSpecialization(string contentFolderPath, string codename, List<CharacterPart> characterParts, FnVersion fnVersion, 
+        internal static bool CreateHeroSpecialization(string contentFolderPath, string codename, List<CharacterPart> characterParts, FnVersion fnVersion, 
         EngineVersion uassetApiEngineVersion, string ueSkinsPackagePath)
         {
-            byte[] hsUasset;
-            byte[] hsUexp;
-
             IEnumerable<string> characterPartTypes = characterParts.Select(cp => cp.Type);
-            if (characterPartTypes.Contains("Body") && characterPartTypes.Contains("Head") && characterPartTypes.Contains("Faceacc"))
+            if (characterParts.Count > 3)
+            {
+                Log.Error("The skin has more than 3 character parts!");
+                return false;
+            }
+            else if (characterParts.Count < 2)
+            {
+                Log.Error("The skin has less than 2 character parts!");
+                return false;
+            }
+
+            byte[] hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uasset");
+            byte[] hsUexp = hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uexp");
+
+            if (characterParts.Count == 3)
             {
                 hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadFaceAcc.uasset");
                 hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadFaceAcc.uexp");
-            }
-            else if (characterPartTypes.Contains("Body") && characterPartTypes.Contains("Head") && characterPartTypes.Contains("Hat"))
-            {
-                hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadHat.uasset");
-                hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadHat.uexp");
-            }
-            else
-            {
-                hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uasset");
-                hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uexp");
             }
 
             File.WriteAllBytes(Path.Combine(contentFolderPath, $"HS_{codename}.uasset"), hsUasset);
@@ -277,11 +286,20 @@ namespace UFMT.FnAssets
                 Console.WriteLine($"Changed the Hat Character Part path in HS_{codename} to " +
                 $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Hat_{codename}.CP_Hat_{codename}");
             }
+            else if (characterPartTypes.Contains("Charm"))
+            {
+                var charmCp = (SoftObjectPropertyData)characterPartsArray.Value[2];
+                charmCp.Value.AssetPath.AssetName.Value.Value =
+                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Charm_{codename}.CP_Charm_{codename}";
+                Console.WriteLine($"Changed the Charm Character Part path in HS_{codename} to " +
+                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Charm_{codename}.CP_Charm_{codename}");
+            }
 
             hsExport0.ObjectName.Value.Value = $"HS_{codename}";
 
             currentHs.Write(Path.Combine(contentFolderPath, $"HS_{codename}.uasset"));
             Log.Success($"Successfully edited HS_{codename}.uasset and HS_{codename}.uexp");
+            return true;
         }
 
         internal static void CreateLobbyAnimationMontage(string contentFolderPath, string codename, string lobbyAnimationPsa, string lobbyAnimationJson, float lobbyAnimationLength, 

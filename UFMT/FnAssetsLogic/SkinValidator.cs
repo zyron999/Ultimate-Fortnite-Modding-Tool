@@ -46,14 +46,16 @@ namespace UFMT.FnAssetsLogic
             string lobbyAnimationFolderPath = Path.Combine(sourcePath, "Lobby_Animation");
             if (!Directory.Exists(lobbyAnimationFolderPath))
             {
-                Log.Error($"Cannot find Lobby_Animation folder inside \"{sourcePath}\"");
-                return false;
+                Log.Warning($"Cannot find Lobby_Animation folder inside \"{sourcePath}\"");
+                Directory.CreateDirectory(lobbyAnimationFolderPath);
+                Console.WriteLine($"Created {lobbyAnimationFolderPath}");
             }
             string physicsPath = Path.Combine(sourcePath, "Physics");
             if (!Directory.Exists(physicsPath))
             {
-                Log.Error($"Cannot find Physics folder inside \"{sourcePath}\"");
-                return false;
+                Log.Warning($"Cannot find Physics folder inside \"{sourcePath}\"");
+                Directory.CreateDirectory(physicsPath);
+                Console.WriteLine($"Created {physicsPath}");
             }
 
             currentSkin.Path = currentSkinFolderPath;

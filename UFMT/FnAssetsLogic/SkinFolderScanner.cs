@@ -14,54 +14,66 @@ namespace UFMT.FnAssetsLogic
     {
         internal static List<CharacterPart> FindCharacterParts(string meshesPath, string physicsPath, List<CharacterPart> allCharacterParts)
         {
-            List<string> pskPaths = new();
-            List<CharacterPart> characterParts = new();
-
-            foreach (string meshFolder in Directory.GetDirectories(meshesPath))
+            try
             {
-                string[] pskFiles = Directory.GetFiles(meshFolder, "*.psk");
-                if (pskFiles.Length == 1)
+                List<string> pskPaths = new();
+                List<CharacterPart> characterParts = new();
+
+                foreach (string meshFolder in Directory.GetDirectories(meshesPath))
                 {
-                    Console.WriteLine($"{Path.GetFileName(pskFiles[0])} is a {Path.GetFileName(meshFolder)} CharactePart Type!");
-                    pskPaths.Add(pskFiles[0]);
+                    string[] pskFiles = Directory.GetFiles(meshFolder, "*.psk");
+                    if (pskFiles.Length == 1)
+                    {
+                        Console.WriteLine($"{Path.GetFileName(pskFiles[0])} is a {Path.GetFileName(meshFolder)} CharactePart Type!");
+                        pskPaths.Add(pskFiles[0]);
+                    }
+                    else if (pskFiles.Length > 1)
+                    {
+                        Log.Error($"{meshFolder} contains more than 1 .psk files, cannot get the correct {Path.GetFileName(meshFolder)} " +
+                        $"Character Part Type!");
+                        return null;
+                    }
+
+
                 }
-                else if (pskFiles.Length > 1)
+
+                foreach (string pskPath in pskPaths)
                 {
-                    Log.Error($"{meshFolder} contains more than 1 .psk files, cannot get the correct {Path.GetFileName(meshFolder)} " +
-                    $"Character Part Type!");
+                    string pskCpType = Path.GetFileName(Path.GetDirectoryName(pskPath));
+                    CharacterPart currentPskCp = allCharacterParts.FirstOrDefault(cp => cp.Type == pskCpType);
+                    currentPskCp.Psk = Path.GetFileNameWithoutExtension(pskPath);
+                    currentPskCp.PskPath = pskPath;
+
+                    // Heads and charms can't really have physics since they use base head skeleton and base tail skeleton
+                    if (pskCpType != "Head" && pskCpType != "Charm")
+                    {
+                        currentPskCp.PhysicsAssetJsonPaths = Directory.GetFiles(Path.Combine(physicsPath, pskCpType), "*.json").ToList();
+                        currentPskCp.PhysicsAssets = currentPskCp.PhysicsAssetJsonPaths.Select(phys => Path.GetFileNameWithoutExtension(phys)).ToList();
+                        currentPskCp.PhysicsAssetJsonPaths.ForEach(json => Console.WriteLine($"Added {Path.GetFileNameWithoutExtension(json)} to {Path.GetFileNameWithoutExtension(pskPath)}"));
+                    }
+
+                    characterParts.Add(currentPskCp);
+                    Log.Success($"{Path.GetFileName(pskPath)} is a {currentPskCp.Type} character part type!");
+                }
+
+                if (characterParts.FirstOrDefault(cp => cp.Type == "Body") == null)
+                {
+                    Log.Error($"Cannot find a body .psk file in {meshesPath}\nThe character must have at least a body and a head!");
+                    return null;
+                }
+                if (characterParts.FirstOrDefault(cp => cp.Type == "Head") == null)
+                {
+                    Log.Error($"Cannot find a head .psk file in {meshesPath}\nThe character must have at least a body and a head!");
                     return null;
                 }
 
-
+                return characterParts;
             }
-
-            foreach (string pskPath in pskPaths)
+            catch (Exception ex)
             {
-                string pskCpType = Path.GetFileName(Path.GetDirectoryName(pskPath));
-                CharacterPart currentPskCp = allCharacterParts.FirstOrDefault(cp => cp.Type == pskCpType);
-                currentPskCp.Psk = Path.GetFileNameWithoutExtension(pskPath);
-                currentPskCp.PskPath = pskPath;
-
-                currentPskCp.PhysicsAssetJsonPaths = Directory.GetFiles(Path.Combine(physicsPath, pskCpType), "*.json").ToList();
-                currentPskCp.PhysicsAssets = currentPskCp.PhysicsAssetJsonPaths.Select(phys => Path.GetFileNameWithoutExtension(phys)).ToList();
-                currentPskCp.PhysicsAssetJsonPaths.ForEach(json => Console.WriteLine($"Added {Path.GetFileNameWithoutExtension(json)} to {Path.GetFileNameWithoutExtension(pskPath)}"));
-
-                characterParts.Add(currentPskCp);
-                Log.Success($"{Path.GetFileName(pskPath)} is a {currentPskCp.Type} character part type!");
-            }
-
-            if (characterParts.FirstOrDefault(cp => cp.Type == "Body") == null)
-            {
-                Log.Error($"Cannot find a body .psk file in {meshesPath}\nThe character must have at least a body and a head!");
+                Log.Error($"An error occured while trying to find skin's character parts! {ex.Message}");
                 return null;
             }
-            if (characterParts.FirstOrDefault(cp => cp.Type == "Head") == null)
-            {
-                Log.Error($"Cannot find a head .psk file in {meshesPath}\nThe character must have at least a body and a head!");
-                return null;
-            }
-
-            return characterParts;
         }
 
         internal static (bool isValid, string psaName, string jsonPath) FindLobbyAnimationFiles(string lobbyAnimationPath)

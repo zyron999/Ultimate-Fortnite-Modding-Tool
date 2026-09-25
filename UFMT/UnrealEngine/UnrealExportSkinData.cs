@@ -25,6 +25,7 @@ namespace UFMT.UnrealEngine
         public string RetargetSource { get; set; }
         public string HeadMeshName { get; set; }
         public string HatMeshName { get; set; }
+        public string CharmMeshName { get; set; }
         public string CurrentFnVersion { get; set; }
         public string UeSkinsPackagePath { get; set; }
     }
