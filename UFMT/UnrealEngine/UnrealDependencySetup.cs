@@ -27,6 +27,8 @@ namespace UFMT.UnrealEngine
                 string accessoriesSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
                 string baseTailSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "FORT_Tails", "Common",
                 "Fortnite_Base_Tail_Skeleton.uasset");
+                string baseTailAnimBpFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "FORT_Tails", "Common",
+                "Fortnite_Base_Tail_AnimBP.uasset");
 
                 await AddOrReplaceUeAsset(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "FakeCID.uasset"));
                 await AddOrReplaceUeAsset(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
@@ -40,6 +42,7 @@ namespace UFMT.UnrealEngine
                 }
                 await AddOrReplaceUeAsset(accessoriesSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
                 await AddOrReplaceUeAsset(baseTailSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_Skeleton.uasset"));
+                await AddOrReplaceUeAsset(baseTailAnimBpFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_AnimBP.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
                 Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(pluginPath)}...");
