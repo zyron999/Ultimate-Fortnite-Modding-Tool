@@ -30,6 +30,7 @@ lobby_animation_json_path = data.get("LobbyAnimationJsonPath")
 retarget_source = data.get("RetargetSource")
 head_mesh_name = data.get("HeadMeshName")
 hat_mesh_name = data.get("HatMeshName")
+charm_mesh_name = data.get("CharmMeshName")
 fn_version = data.get("CurrentFnVersion")
 ue_skins_package_path = data.get("UeSkinsPackagePath")
 
@@ -51,7 +52,7 @@ delete_directory_if_exists(tex_destination_path)
 delete_directory_if_exists(mi_destination_path)
 
 
-def import_fbx(fbx_path, asset_name, use_base_head = False, use_hat_skeleton = False):
+def import_fbx(fbx_path, asset_name, use_base_head = False, use_hat_skeleton = False, use_charm_skeleton = False):
     skel_data = unreal.FbxSkeletalMeshImportData()
     skel_data.set_editor_property("import_content_type", unreal.FBXImportContentType.FBXICT_ALL)
     skel_data.set_editor_property("import_translation",  unreal.Vector(0.0, 0.0, 0.0))
@@ -86,7 +87,15 @@ def import_fbx(fbx_path, asset_name, use_base_head = False, use_hat_skeleton = F
         if sk:
             ui.skeleton = sk
         else:
-            unreal.log_error("Failed to load base head skeleton at: {}".format(target_skeleton_path))
+            unreal.log_error("Failed to load hat skeleton at: {}".format(target_skeleton_path))
+
+    elif use_charm_skeleton:
+        target_skeleton_path = "/Game/Accessories/FORT_Tails/Common/Fortnite_Base_Tail_Skeleton"
+        sk = unreal.load_asset(target_skeleton_path)
+        if sk:
+            ui.skeleton = sk
+        else:
+            unreal.log_error("Failed to load charm skeleton at: {}".format(target_skeleton_path))
 
     task                  = unreal.AssetImportTask()
     task.filename         = fbx_path
@@ -379,6 +388,15 @@ for i in range(len(fbx_paths)):
         anim_bp_path = "/Game/Base/Head/Skeleton/Base_Head_AnimBP.Base_Head_AnimBP_C"
         if (fn_version == "9.41"):
             anim_bp_path = "/Game/Modding/Base_Head/Base_Head_Modding_AnimBP.Base_Head_Modding_AnimBP_C"
+        mesh.set_editor_property(
+            "post_process_anim_blueprint",
+            unreal.load_class(None, anim_bp_path)
+        )
+
+    elif (asset_names[i] == charm_mesh_name):
+        import_fbx(fbx_paths[i], asset_names[i], False, False, True)
+        mesh = unreal.EditorAssetLibrary.load_asset("{}/{}".format(fbx_destination_path, asset_names[i]))
+        anim_bp_path = "/Game/Accessories/FORT_Tails/Common/Fortnite_Base_Tail_AnimBP.Fortnite_Base_Tail_AnimBP_C"
         mesh.set_editor_property(
             "post_process_anim_blueprint",
             unreal.load_class(None, anim_bp_path)
