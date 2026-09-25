@@ -126,6 +126,9 @@ namespace UFMT.FnAssetsLogic
         internal static bool ValidateAfterUeImport(string ueProjectPath, string ueSkinsOsPath, string codename, List<string> diffuseTextures, List<string> maskTextures,
         List<string> normalTextures, List<string> specularTextures, List<string> materials, List<string> meshes, string smallIcon, string largeIcon, string lobbyAnimation, string cid)
         {
+            // if a skin had none material, don't check if it exists because ue materials cannot be none since that's a keyword
+            if (materials.Contains("None")) materials.Remove("None");
+            if (materials.Contains("none")) materials.Remove("none");
             string contentCurrentSkinPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", ueSkinsOsPath, codename);
             if (!Path.Exists(contentCurrentSkinPath))
             {
@@ -151,6 +154,9 @@ namespace UFMT.FnAssetsLogic
         internal static bool ValidateAfterUeCook(string cookedCurrentSkinPath, string codename, List<string> diffuseTextures, List<string> maskTextures,
         List<string> normalTextures, List<string> specularTextures, List<string> materials, List<string> meshes, string smallIcon, string largeIcon, string lobbyAnimation, string cid)
         {
+            // if a skin had none material, don't check if it exists because ue materials cannot be none since that's a keyword
+            if (materials.Contains("None")) materials.Remove("None");
+            if (materials.Contains("none")) materials.Remove("none");
             if (!Path.Exists(cookedCurrentSkinPath))
             {
                 Log.Error($"{cookedCurrentSkinPath} does not exist!");

@@ -146,7 +146,8 @@ def apply_materials_to_mesh(asset_name):
     materials = mesh.materials
     for i, skeletal_material in enumerate(materials):
         slot_name = str(skeletal_material.material_slot_name)
-        mi_path   = "{}/{}".format(mi_destination_path, slot_name)
+        target_name = "M_None" if slot_name.lower() == "none" else slot_name
+        mi_path = "{}/{}".format(mi_destination_path, target_name)
         mi        = unreal.load_asset(mi_path)
         if mi:
             materials[i] = unreal.SkeletalMaterial(
@@ -366,8 +367,9 @@ def apply_lod_settings(asset_name):
     else:
         unreal.log_error("FAILED => Missing mesh ({}) or LODSettings asset ({})".format(mesh_path, lod_settings_path))
 
-for i in range(len(material_names)):
-    create_material_instance(material_names[i])
+for name in material_names:
+    safe_name = "M_None" if name.lower() == "none" else name
+    create_material_instance(safe_name)
 
 if lobby_animation_fbx_path != "":
     import_animation(lobby_animation_fbx_path)

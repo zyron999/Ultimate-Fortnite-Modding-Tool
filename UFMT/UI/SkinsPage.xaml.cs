@@ -323,12 +323,14 @@ namespace UFMT.UI
             string ueExecutablePath = App.Settings.UeExecutablePath;
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
+            bool success = true;
 
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
             if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
             SkinLobbyAnimationJsonEditor.RemoveControlExpressions(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationJson}.json"));
-            if (fnVer.ManuallySwizzleMaterials) TextureSwizzler.SwizzleSpecularTextures(exportSkin.TexturesPath, exportSkin.Materials.Select(mat => mat.SelectedSpecular).ToArray());
+            if (fnVer.ManuallySwizzleMaterials) success = (TextureSwizzler.SwizzleSpecularTextures(exportSkin.TexturesPath, exportSkin.Materials.Select(mat => mat.SelectedSpecular).ToArray()));
+            if (!success) return;
 
             string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
             "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(App.Settings.UeProjectPath), "Content");
@@ -353,7 +355,7 @@ namespace UFMT.UI
             fnVer.ManuallySwizzleMaterials, exportSkin.SourcePath, exportSkin.LobbyAnimationFbx, exportSkin.LobbyAnimationJson, exportSkin.CharacterParts,
             exportSkin.Gender, exportSkin.Codename, exportSkin.CID, ueSkinsPackagePath);
             if (unrealData == null) return;
-            string jsonString = System.Text.Json.JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportSkinData);
+            string jsonString = JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportSkinData);
             await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "skin");
 
             if (!SkinValidator.ValidateAfterUeImport(ueProjectPath, ueSkinsOsPath, exportSkin.Codename, unrealData.DiffuseTextures, unrealData.MaskTextures, unrealData.NormalTextures,
