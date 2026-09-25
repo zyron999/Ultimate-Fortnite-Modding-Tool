@@ -228,12 +228,7 @@ namespace UFMT.FnAssets
         EngineVersion uassetApiEngineVersion, string ueSkinsPackagePath)
         {
             IEnumerable<string> characterPartTypes = characterParts.Select(cp => cp.Type);
-            if (characterParts.Count > 3)
-            {
-                Log.Error("The skin has more than 3 character parts!");
-                return false;
-            }
-            else if (characterParts.Count < 2)
+            if (characterParts.Count < 2)
             {
                 Log.Error("The skin has less than 2 character parts!");
                 return false;
@@ -241,12 +236,6 @@ namespace UFMT.FnAssets
 
             byte[] hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uasset");
             byte[] hsUexp = hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHead.uexp");
-
-            if (characterParts.Count == 3)
-            {
-                hsUasset = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadFaceAcc.uasset");
-                hsUexp = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "HsBodyHeadFaceAcc.uexp");
-            }
 
             File.WriteAllBytes(Path.Combine(contentFolderPath, $"HS_{codename}.uasset"), hsUasset);
             File.WriteAllBytes(Path.Combine(contentFolderPath, $"HS_{codename}.uexp"), hsUexp);
@@ -269,30 +258,22 @@ namespace UFMT.FnAssets
             $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Body_{codename}.CP_Body_{codename}");
 
 
-            if (characterPartTypes.Contains("Faceacc"))
+            foreach (var cp in characterParts.Where(cp => cp.Type != "Body" && cp.Type != "Head"))
             {
-                var faceAccCp = (SoftObjectPropertyData)characterPartsArray.Value[2];
-                faceAccCp.Value.AssetPath.AssetName.Value.Value =
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Faceacc_{codename}.CP_Faceacc_{codename}";
-                Console.WriteLine($"Changed the FaceAcc Character Part path in HS_{codename} to " +
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Faceacc_{codename}.CP_Faceacc_{codename}");
+                int newCpIndex = 2;
+                var assetPath = new FTopLevelAssetPath(
+                FName.FromString(currentHs, null),
+                FName.FromString(currentHs, $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_{cp.Type}_{codename}.CP_{cp.Type}_{codename}")
+);
 
-            }
-            else if (characterPartTypes.Contains("Hat"))
-            {
-                var hatCp = (SoftObjectPropertyData)characterPartsArray.Value[2];
-                hatCp.Value.AssetPath.AssetName.Value.Value =
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Hat_{codename}.CP_Hat_{codename}";
-                Console.WriteLine($"Changed the Hat Character Part path in HS_{codename} to " +
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Hat_{codename}.CP_Hat_{codename}");
-            }
-            else if (characterPartTypes.Contains("Charm"))
-            {
-                var charmCp = (SoftObjectPropertyData)characterPartsArray.Value[2];
-                charmCp.Value.AssetPath.AssetName.Value.Value =
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Charm_{codename}.CP_Charm_{codename}";
-                Console.WriteLine($"Changed the Charm Character Part path in HS_{codename} to " +
-                $"{ueSkinsPackagePath}/{codename}/CharacterParts/CP_Charm_{codename}.CP_Charm_{codename}");
+                var newPath = new FSoftObjectPath(assetPath, new FString(null));
+                var newProp = new SoftObjectPropertyData(FName.FromString(currentHs, $"{newCpIndex}"))
+                {
+                    Value = newPath
+                };
+
+                newCpIndex++;
+                characterPartsArray.Value = characterPartsArray.Value.Append(newProp).ToArray();
             }
 
             hsExport0.ObjectName.Value.Value = $"HS_{codename}";
@@ -359,26 +340,23 @@ namespace UFMT.FnAssets
 
             var currentHid = new UAsset(hidUassetPath, uassetApiEngineVersion);
             var hidExport0 = (NormalExport)currentHid.Exports[0];
+
             hidExport0.ObjectName.Value.Value = $"HID_{codename}";
             var hidSmallIcon = (SoftObjectPropertyData)hidExport0["SmallPreviewImage"];
             var hidLargeIcon = (SoftObjectPropertyData)hidExport0["LargePreviewImage"];
-            hidSmallIcon.Value.AssetPath.AssetName.Value.Value =
-            $"{ueSkinsPackagePath}/{codename}/Textures/{smallIcon}.{smallIcon}";
-            Console.WriteLine($"Changed the Small Icon path in HID_{codename} to " +
-            $"{ueSkinsPackagePath}/{codename}/Textures/{smallIcon}.{smallIcon}");
-            hidLargeIcon.Value.AssetPath.AssetName.Value.Value =
-            $"{ueSkinsPackagePath}/{codename}/Textures/{largeIcon}.{largeIcon}";
-            Console.WriteLine($"Changed the Large Icon path in HID_{codename} to " +
-            $"{ueSkinsPackagePath}/{codename}/Textures/{largeIcon}.{largeIcon}");
+
+            hidSmallIcon.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/Textures/{smallIcon}.{smallIcon}";
+            Console.WriteLine($"Changed the Small Icon path in HID_{codename} to {ueSkinsPackagePath}/{codename}/Textures/{smallIcon}.{smallIcon}");
+            hidLargeIcon.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/Textures/{largeIcon}.{largeIcon}";
+            Console.WriteLine($"Changed the Large Icon path in HID_{codename} to {ueSkinsPackagePath}/{codename}/Textures/{largeIcon}.{largeIcon}");
+
             var hidSpecializationsArray = (ArrayPropertyData)hidExport0["Specializations"];
             var hidSpecialization = (SoftObjectPropertyData)hidSpecializationsArray.Value[0];
-            hidSpecialization.Value.AssetPath.AssetName.Value.Value =
-            $"{ueSkinsPackagePath}/{codename}/HS_{codename}.HS_{codename}";
-            Console.WriteLine($"Changed the Hero Specialization path in HID_{codename} to " +
-            $"{ueSkinsPackagePath}/{codename}/HS_{codename}.HS_{codename}");
+            hidSpecialization.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/HS_{codename}.HS_{codename}";
+            Console.WriteLine($"Changed the Hero Specialization path in HID_{codename} to {ueSkinsPackagePath}/{codename}/HS_{codename}.HS_{codename}");
+
             var idleMontage = (SoftObjectPropertyData)hidExport0["FrontendAnimMontageIdleOverride"];
-            idleMontage.Value.AssetPath.AssetName.Value.Value =
-            $"{ueSkinsPackagePath}/{codename}/Animations/{codename}_Idle_Montage.{codename}_Idle_Montage";
+            idleMontage.Value.AssetPath.AssetName.Value.Value = $"{ueSkinsPackagePath}/{codename}/Animations/{codename}_Idle_Montage.{codename}_Idle_Montage";
 
             currentHid.Write(hidUassetPath);
             Log.Success($"Successfully edited HID_{codename}.uasset and HID_{codename}.uexp");
