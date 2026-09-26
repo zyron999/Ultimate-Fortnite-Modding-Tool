@@ -20,7 +20,8 @@ female_animation_fbx_path = data.get("FemaleAnimationFbxPath")
 female_animation_json_path = data.get("FemaleAnimationJsonPath")
 female_animation_length = data.get("FemaleAnimationLength")
 icon_textures = data.get("IconTexturePaths")
-sound_wav_path = data.get("SoundWavPath")
+loop_sound_path = data.get("LoopSoundFilePath")
+intro_sound_path = data.get("IntroSoundFilePath")
 sound_wav_compression_quality = data.get("SoundWavCompressionQuality")
 code_name = data.get("Codename")
 eid = data.get("EID")
@@ -145,17 +146,20 @@ def run_animation_importer(anim_sequence_path, json_path):
     return success
 
 
-def import_sound(wav_path):
+def import_sound(wav_path, isIntro = False):
     if not wav_path or not os.path.exists(wav_path):
         return
 
     task = unreal.AssetImportTask()
     task.filename = wav_path
     task.destination_path = sounds_destination_path
-    task.destination_name = "{}_Sound".format(code_name)
+    task.destination_name = "{}_Sound_Loop".format(code_name)
     task.replace_existing = True
     task.automated = True
     task.save = False
+
+    if (isIntro):
+        task.destination_name = "{}_Sound_Intro".format(code_name)
 
     unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([task])
 
@@ -209,8 +213,10 @@ if female_animation_fbx_path != "":
         anim_sequence_path = "{}/Animations/Emote_{}_CMF".format("{}/{}".format(package_path, code_name), code_name)
         run_animation_importer(anim_sequence_path, female_animation_json_path)
 
-if sound_wav_path:
-    import_sound(sound_wav_path)
+if loop_sound_path:
+    import_sound(loop_sound_path)
+    if (intro_sound_path):
+        import_sound(intro_sound_path, True)
 
 if icon_textures[0] != "":
     import_icon_texture(icon_textures[0], "T-Icon-Emotes-E-{}".format(code_name))

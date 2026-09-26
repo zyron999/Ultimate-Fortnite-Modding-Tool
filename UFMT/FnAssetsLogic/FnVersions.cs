@@ -16,6 +16,8 @@ namespace UFMT.FnAssets
         public int DiffuseNameIndex = 9;
         public int HidNameIndex = 2;
         public int HidPathIndex = 4;
+        public int IntroSoundWaveAssetPtrIndex = 4;
+        public int LoopingSoundWaveAssetPtrIndex = 3;
         public string Name;
     };
 
@@ -25,6 +27,8 @@ namespace UFMT.FnAssets
         {
             DiffusePathIndex = 5,
             DiffuseNameIndex = 18,
+            IntroSoundWaveAssetPtrIndex = 3,
+            LoopingSoundWaveAssetPtrIndex = 4,
             Name = "14.30"
         };
         public static FnVersion v13_40 = new FnVersion()
@@ -32,6 +36,8 @@ namespace UFMT.FnAssets
             ManuallySwizzleMaterials = true,
             DiffusePathIndex = 37,
             DiffuseNameIndex = 160,
+            IntroSoundWaveAssetPtrIndex = 3,
+            LoopingSoundWaveAssetPtrIndex = 4,
             Name = "13.40"
         };
         public static FnVersion v8_51 = new()
@@ -42,7 +48,9 @@ namespace UFMT.FnAssets
         public static FnVersion v9_41 = new()
         {
             ManuallySwizzleMaterials = false,
-            Name = "9.41"
+            IntroSoundWaveAssetPtrIndex = 3,
+            LoopingSoundWaveAssetPtrIndex = 4,
+        Name = "9.41"
         };
         public static FnVersion v12_41 = new()
         {

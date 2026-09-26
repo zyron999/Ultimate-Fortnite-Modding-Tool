@@ -140,29 +140,14 @@ namespace UFMT.FnAssets
                 CharacterPart charm = characterParts.FirstOrDefault(cp => cp.Type == "Charm");
                 if (!Path.Exists(characterPartsPath)) Directory.CreateDirectory(characterPartsPath);
 
-                if (gender == "Female")
+                body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpBody{gender}.uasset");
+                body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpBody{gender}.uexp");
+                head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpHead{gender}.uasset");
+                head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpHead{gender}.uexp");
+                if (faceacc != null)
                 {
-                    body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uasset");
-                    body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyFemale.uexp");
-                    head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uasset");
-                    head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadFemale.uexp");
-                    if (faceacc != null)
-                    {
-                        faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uasset");
-                        faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccFemale.uexp");
-                    }
-                }
-                else if (gender == "Male")
-                {
-                    body.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uasset");
-                    body.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpBodyMale.uexp");
-                    head.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uasset");
-                    head.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpHeadMale.uexp");
-                    if (faceacc != null)
-                    {
-                        faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uasset");
-                        faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "CpFaceAccMale.uexp");
-                    }
+                    faceacc.UassetFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpFaceAcc{gender}.uasset");
+                    faceacc.UexpFile = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", $"CpFaceAcc{gender}.uexp");
                 }
 
                 if (hat != null)

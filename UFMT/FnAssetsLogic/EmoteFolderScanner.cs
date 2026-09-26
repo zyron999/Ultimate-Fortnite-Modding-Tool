@@ -68,22 +68,47 @@ namespace UFMT.FnAssetsLogic
             return (maleJson, femaleJson);
         }
 
-        internal static (bool, string) GetSoundData(string SoundFolderPath)
+        internal static (bool, string loopFilePath, string introFilePath) GetSoundData(string loopSoundFolderPath, string introSoundFolderPath)
         {
-            string[] WavFilePaths = Directory.GetFiles(SoundFolderPath);
-            if (WavFilePaths.Length > 1)
+            string soundFolderPath = Path.GetDirectoryName(loopSoundFolderPath);
+
+            string[] soundFilePaths = Directory.GetFiles(soundFolderPath);
+            string[] loopSoundFilePaths = Directory.GetFiles(loopSoundFolderPath);
+            string[] introSoundFilePaths = Directory.GetFiles(introSoundFolderPath);
+
+
+            // Emotes made with older versions of UFMT only had loop support and it was directly in sound folder so if it's found move it to loop folder
+            if (soundFilePaths.Length == 1)
             {
-                Log.Error($"Multiple .wav files found in \"{SoundFolderPath}\"!");
-                return (false, null);
-            }
-            if (WavFilePaths.Length == 0)
-            {
-                Log.Error($"No .wav files found in \"{SoundFolderPath}\"!");
-                return (false, null);
+                if (loopSoundFilePaths.Length == 0) 
+                {
+                    File.Move(soundFilePaths[0], Path.Combine(loopSoundFolderPath, Path.GetFileName(soundFilePaths[0])), true);
+                    loopSoundFilePaths = Directory.GetFiles(loopSoundFolderPath);
+                } 
+                else File.Delete(soundFilePaths[0]);
             }
 
-            Log.Success($"Found {Path.GetFileName(WavFilePaths[0])} in Sound folder");
-            return (true, Path.GetFileName(WavFilePaths[0]));
+            if (loopSoundFilePaths.Length > 1)
+            {
+                Log.Error($"'{loopSoundFolderPath}' contains more than 1 sound wave (.wav files)!");
+                return (false, null, null);
+            }
+
+            if (loopSoundFilePaths.Length == 0)
+            {
+                Log.Error($"'{loopSoundFolderPath}' has no sound waves (.wav files)!");
+                return (false, null, null);
+            }
+
+            if (introSoundFilePaths.Length > 1)
+            {
+                Log.Error($"'{introSoundFilePaths}' contains more than 1 sound wave (.wav files)!");
+                return (false, null, null);
+            }
+            string loopSoundFileName = Path.GetFileName(loopSoundFilePaths[0]);
+            string introSoundFileName = introSoundFilePaths.Length == 1 ? Path.GetFileName(introSoundFilePaths[0]) : string.Empty;
+
+            return (true, loopSoundFileName, introSoundFileName);
         }
 
         private static (string maleAnimation, string femaleAnimation) CheckForCMMandCMF(string animation1, string animation2)
@@ -154,6 +179,35 @@ namespace UFMT.FnAssetsLogic
                 return (animation1, animation2);
             }
             return (null, null);
+        }
+
+        public static double GetSoundWavLength(string soundWavFilePath)
+        {
+            string filePath = soundWavFilePath;
+            TimeSpan time = TimeSpan.Zero;
+
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            using (var br = new BinaryReader(fs))
+            {
+                // Read RIFF chunk descriptor
+                fs.Position = 22; // Jump to channel count property
+                short channels = br.ReadInt16();
+
+                fs.Position = 24; // Jump to sample rate
+                int sampleRate = br.ReadInt32();
+
+                fs.Position = 34; // Jump to bits per sample
+                short bitsPerSample = br.ReadInt16();
+
+                fs.Position = 40; // Jump to data size section
+                int dataSize = br.ReadInt32();
+
+                // Calculate duration in seconds
+                double durationInSeconds = (double)dataSize / (sampleRate * channels * (bitsPerSample / 8));
+
+                time = TimeSpan.FromSeconds(durationInSeconds);
+            }
+            return time.TotalSeconds;
         }
     }
 }

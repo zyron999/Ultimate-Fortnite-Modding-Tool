@@ -61,20 +61,31 @@ namespace UFMT.FnAssetsLogic
             string soundPath = Path.Combine(sourcePath, "Sound");
             if (!Directory.Exists(soundPath))
             {
-                Log.Error($"Cannot find Sound folder inside \"{sourcePath}\"");
+                Log.Error($"Cannot find Sound folder inside \"{soundPath}\"");
                 return false;
             }
+
+            // Emotes made with older versions of UFMT don't contain loop and intro folders inside of sound so instead of throwing an error just create them
+            string loopSoundFolderPath = Path.Combine(soundPath, "Loop");
+            if (!Directory.Exists(loopSoundFolderPath))
+            {
+                Directory.CreateDirectory(loopSoundFolderPath);
+            }
+
+            string introSoundFolderPath = Path.Combine(soundPath, "Intro");
+            if (!Directory.Exists(introSoundFolderPath)) Directory.CreateDirectory(introSoundFolderPath);
 
             currentEmote.Path = currentEmoteFolderPath;
             currentEmote.SourcePath = sourcePath;
             currentEmote.AnimationsPath = animationsPath;
             currentEmote.IconsPath = iconsPath;
-            currentEmote.SoundPath = soundPath;
+            currentEmote.LoopSoundFolderPath = loopSoundFolderPath;
+            currentEmote.IntroSoundFolderPath = introSoundFolderPath;
             currentEmote.Codename = codename;
             return true;
         }
 
-        internal static bool ValidateAfterUeImport(string ueProjectPath, string ueEmotesOsPath, string codename, string smallIcon, string largeIcon, string eid)
+        internal static bool ValidateAfterUeImport(string ueProjectPath, string ueEmotesOsPath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
         {
             string contentCurrentEmotePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", ueEmotesOsPath, codename);
             if (!Path.Exists(contentCurrentEmotePath))
@@ -84,7 +95,8 @@ namespace UFMT.FnAssetsLogic
             }
             if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", false)) return false;
             if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", false)) return false;
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Sound"), $"{codename}_Sound", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Sound"), $"{codename}_Sound_Loop", false)) return false;
+            if (usesIntro && !FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "Sound"), $"{codename}_Sound_Intro", false)) return false;
 
             if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}", false)) return false;
             if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}-L", false)) return false;
@@ -93,7 +105,7 @@ namespace UFMT.FnAssetsLogic
             return true;
         }
 
-        internal static bool ValidateAfterUeCook(string cookedCurrentEmotePath, string codename, string smallIcon, string largeIcon, string eid)
+        internal static bool ValidateAfterUeCook(string cookedCurrentEmotePath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
         {
             if (!Path.Exists(cookedCurrentEmotePath))
             {
@@ -102,7 +114,8 @@ namespace UFMT.FnAssetsLogic
             }
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMM", true)) return false;
             if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Animations"), $"Emote_{codename}_CMf", true)) return false;
-            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Sound"), $"{codename}_Sound", true)) return false;
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Sound"), $"{codename}_Sound_Loop", true)) return false;
+            if (usesIntro && !FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "Sound"), $"{codename}_Sound_Intro", true)) return false;
 
             if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}", true)) return false;
             if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentEmotePath, "UI"), $"T-Icon-Emotes-E-{codename}-L", true)) return false;

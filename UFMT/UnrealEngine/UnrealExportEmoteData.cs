@@ -14,12 +14,14 @@ namespace UFMT.UnrealEngine
         public string FemaleAnimationFbxPath { get; set; }
         public string FemaleAnimationJsonPath { get; set; }
         public double FemaleAnimationLength { get; set; }
-        public string SoundWavPath { get; set; }
+        public string LoopSoundFilePath { get; set; }
+        public string IntroSoundFilePath { get; set; }
         public int SoundWavCompressionQuality { get; set; }
         public string[] IconTexturePaths { get; set; }
         public string Codename { get; set; }
         public string EID { get; set; } = string.Empty;
         public string UeEmotesPackagePath { get; set; }
         public string UnrealEngineVersion { get; set; }
+        public float LoopSoundStartTime { get; set; }
     }
 }

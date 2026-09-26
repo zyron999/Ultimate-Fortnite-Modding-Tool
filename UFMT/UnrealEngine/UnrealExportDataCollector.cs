@@ -97,13 +97,15 @@ namespace UFMT.UnrealEngine
                     FemaleAnimationFbxPath = Path.Combine(currentEmote.SourcePath, "Fbx", "Animations", currentEmote.FemaleAnimationFbx),
                     FemaleAnimationJsonPath = Path.Combine(currentEmote.AnimationsPath, currentEmote.FemaleAnimationJson),
                     FemaleAnimationLength = currentEmote.FemaleAnimationLength,
-                    SoundWavPath = Path.Combine(currentEmote.SoundPath, currentEmote.SoundWav),
+                    LoopSoundFilePath = Path.Combine(currentEmote.LoopSoundFolderPath, currentEmote.LoopSoundFileName),
+                    IntroSoundFilePath = Path.Combine(currentEmote.IntroSoundFolderPath, currentEmote.IntroSoundFileName),
                     SoundWavCompressionQuality = currentEmote.SoundWavCompressionQuality,
                     IconTexturePaths = iconTexturePaths.ToArray(),
                     Codename = currentEmote.Codename,
                     EID = currentEmote.EID,
                     UeEmotesPackagePath = emotePackagePath,
-                    UnrealEngineVersion = unrealEngineVersion
+                    UnrealEngineVersion = unrealEngineVersion,
+                    LoopSoundStartTime = (float)currentEmote.LoopSoundStartTime
                 };
 
                 if (currentEmote.MaleAnimationJson == string.Empty) unrealData.MaleAnimationJsonPath = string.Empty;

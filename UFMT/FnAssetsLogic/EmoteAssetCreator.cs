@@ -133,58 +133,86 @@ namespace UFMT.FnAssets
             }
         }
 
-        internal static void CreateSoundCues(string OutputFnGameCurrentEmotePath, FnVersion fnVersion, UeVersion ueVersion, string ueEmotesPackagePath, string codename)
+        internal static void CreateSoundCues(string OutputFnGameCurrentEmotePath, FnVersion fnVersion, UeVersion ueVersion, string ueEmotesPackagePath, string codename, 
+        bool useIntro, float loopSoundStartTime)
         {
             string soundCueName = $"SC_EmoteMusic_{codename}.uasset";
             string soundCue3PName = $"SC_EmoteMusic3P_{codename}.uasset";
             string soundCueUassetPath = Path.Combine(OutputFnGameCurrentEmotePath, "Sound", soundCueName);
             string soundCue3PUassetPath = Path.Combine(OutputFnGameCurrentEmotePath, "Sound", soundCue3PName);
 
-            byte[] soundCueUassetBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue.uasset");
-            byte[] soundCueUexpBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue.uexp");
-            byte[] soundCue3PUassetBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue3P.uasset");
-            byte[] soundCue3PUexpBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue3P.uexp");
-
+            byte[] soundCueUassetBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue" + (useIntro ? "Intro.uasset" : ".uasset"));
+            byte[] soundCueUexpBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue" + (useIntro ? "Intro.uexp" : ".uexp"));
+            byte[] soundCue3PUassetBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue3P" + (useIntro ? "Intro.uasset" : ".uasset"));
+            byte[] soundCue3PUexpBase64 = TemplateLoader.GetEmbeddedFile(fnVersion.Name, "CookedUeAssets", "EmoteSoundCue3P" + (useIntro ? "Intro.uexp" : ".uexp"));
 
             File.WriteAllBytes(soundCueUassetPath, soundCueUassetBase64);
             File.WriteAllBytes(Path.ChangeExtension(soundCueUassetPath, ".uexp"), soundCueUexpBase64);
             File.WriteAllBytes(soundCue3PUassetPath, soundCue3PUassetBase64);
             File.WriteAllBytes(Path.ChangeExtension(soundCue3PUassetPath, ".uexp"), soundCue3PUexpBase64);
 
-            float soundWaveLength =
-            ((FloatPropertyData)((NormalExport)new UAsset(Path.Combine(OutputFnGameCurrentEmotePath, "Sound", $"{codename}_Sound.uasset"), ueVersion.UassetApiEngineVer).Exports[0])["Duration"]).Value;
+            float loopSoundWaveLength =
+(           (FloatPropertyData)((NormalExport)new UAsset(Path.Combine(OutputFnGameCurrentEmotePath, "Sound", $"{codename}_Sound_Loop.uasset"), ueVersion.UassetApiEngineVer).Exports[0])["Duration"]).Value;
 
             var soundCueAsset = new UAsset(soundCueUassetPath, ueVersion.UassetApiEngineVer);
             var exportData = soundCueAsset.Exports;
             var export0 = (NormalExport)exportData[0];
 
             export0.ObjectName.Value.Value = Path.GetFileNameWithoutExtension(soundCueName);
-            var duration = (FloatPropertyData)export0["Duration"];
-            duration.Value = soundWaveLength;
 
-            var export1 = (NormalExport)exportData[1];
-            var soundWaveAssetPtr = (SoftObjectPropertyData)export1["SoundWaveAssetPtr"];
-            soundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound.{codename}_Sound";
+            var loopSoundWaveAssetPtr = (SoftObjectPropertyData)((NormalExport)exportData[useIntro ? fnVersion.LoopingSoundWaveAssetPtrIndex : 1])["SoundWaveAssetPtr"];
+            loopSoundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Loop.{codename}_Sound_Loop";
 
             var importData = soundCueAsset.Imports;
-            importData[4].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound";
-            importData[10].ObjectName.Value.Value = $"{codename}_Sound";
+            importData[useIntro ? 7 : 4].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Loop";
+            importData[useIntro ? 16 : 10].ObjectName.Value.Value = $"{codename}_Sound_Loop";
+
+            if (useIntro)
+            {
+                var introSoundWaveAssetPtr = (SoftObjectPropertyData)((NormalExport)exportData[fnVersion.IntroSoundWaveAssetPtrIndex])["SoundWaveAssetPtr"];
+                introSoundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Intro.{codename}_Sound_Intro";
+
+                var delayMin = (FloatPropertyData)((NormalExport)exportData[1])["DelayMin"];
+                var delayMax = (FloatPropertyData)((NormalExport)exportData[1])["DelayMax"];
+
+                delayMin.Value = loopSoundStartTime;
+                delayMax.Value = loopSoundStartTime;
+
+                importData[6].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Intro";
+                importData[15].ObjectName.Value.Value = $"{codename}_Sound_Intro";
+            }
+
             soundCueAsset.Write(soundCueUassetPath);
+
+
 
             var soundCue3PAsset = new UAsset(soundCue3PUassetPath, ueVersion.UassetApiEngineVer);
             exportData = soundCue3PAsset.Exports;
             export0 = (NormalExport)exportData[0];
             export0.ObjectName.Value.Value = Path.GetFileNameWithoutExtension(soundCue3PName);
-            duration = (FloatPropertyData)export0["Duration"];
-            duration.Value = soundWaveLength;
 
-            export1 = (NormalExport)exportData[1];
-            soundWaveAssetPtr = (SoftObjectPropertyData)export1["SoundWaveAssetPtr"];
-            soundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound.{codename}_Sound";
+            loopSoundWaveAssetPtr = (SoftObjectPropertyData)((NormalExport)exportData[useIntro ? fnVersion.LoopingSoundWaveAssetPtrIndex : 1])["SoundWaveAssetPtr"];
+            loopSoundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Loop.{codename}_Sound_Loop";
 
             importData = soundCue3PAsset.Imports;
-            importData[5].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound";
-            importData[12].ObjectName.Value.Value = $"{codename}_Sound";
+            importData[useIntro ? 8 : 5].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Loop";
+            importData[useIntro ? 18 : 12].ObjectName.Value.Value = $"{codename}_Sound_Loop";
+
+            if (useIntro)
+            {
+                var introSoundWaveAssetPtr = (SoftObjectPropertyData)((NormalExport)exportData[fnVersion.IntroSoundWaveAssetPtrIndex])["SoundWaveAssetPtr"];
+                introSoundWaveAssetPtr.Value.AssetPath.AssetName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Intro.{codename}_Sound_Intro";
+
+                var delayMin = (FloatPropertyData)((NormalExport)exportData[1])["DelayMin"];
+                var delayMax = (FloatPropertyData)((NormalExport)exportData[1])["DelayMax"];
+
+                delayMin.Value = loopSoundStartTime;
+                delayMax.Value = loopSoundStartTime;
+
+                importData[7].ObjectName.Value.Value = $"{ueEmotesPackagePath}/{codename}/Sound/{codename}_Sound_Intro";
+                importData[17].ObjectName.Value.Value = $"{codename}_Sound_Intro";
+            }
+
             soundCue3PAsset.Write(soundCue3PUassetPath);
         }
 

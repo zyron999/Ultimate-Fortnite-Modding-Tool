@@ -133,9 +133,16 @@ namespace UFMT.UI
                 (CurrentEmote.MaleAnimationJson, CurrentEmote.FemaleAnimationJson) = EmoteFolderScanner.GetAnimationJsonData
                 (CurrentEmote.MaleAnimationPsa, CurrentEmote.FemaleAnimationPsa, CurrentEmote.AnimationsPath);
 
-                (success, string wav) = EmoteFolderScanner.GetSoundData(CurrentEmote.SoundPath);
+                (success, string loopSound, string introSound) = EmoteFolderScanner.GetSoundData(CurrentEmote.LoopSoundFolderPath, CurrentEmote.IntroSoundFolderPath);
                 if (!success) return;
-                CurrentEmote.SoundWav = wav;
+                CurrentEmote.LoopSoundFileName = loopSound;
+                CurrentEmote.IntroSoundFileName = introSound;
+
+                // Change the default value of loop sound start time to end time of it's intro (if it has one)
+                if (CurrentEmote.IntroSoundFileName != string.Empty) 
+                {
+                    CurrentEmote.LoopSoundStartTime = EmoteFolderScanner.GetSoundWavLength(Path.Combine(CurrentEmote.IntroSoundFolderPath, CurrentEmote.IntroSoundFileName));
+                } 
 
                 (string largeIcon, string smallIcon) = TextureCategorizer.GetIconTextures(CurrentEmote.IconsPath, "emote");
                 if (largeIcon == null || smallIcon == null) return;
@@ -278,7 +285,9 @@ namespace UFMT.UI
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Animations"));
 
-            Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound"));
+            Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound", "Loop"));
+
+            Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound", "Intro"));
 
             Directory.CreateDirectory(Path.Combine(EmotesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Icons"));
 
@@ -419,6 +428,8 @@ namespace UFMT.UI
                 string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
                 UeVersion currentUeVersion = CurrentUeVersion;
                 FnVersion currentFnVersion = CurrentFnVersion;
+                bool emoteUsesIntro = CurrentEmote.IntroSoundFileName != string.Empty && 
+                File.Exists(Path.Combine(CurrentEmote.IntroSoundFolderPath, CurrentEmote.IntroSoundFileName));
 
                 if (!EmoteValidator.ValidateBeforeExportProcess(ueEmotesPackagePath, ueProjectPath, ueExecutablePath, exportEmote.Name, exportEmote.Description, exportEmote.Rarity,
                 rarityComboBox.Items.Select(item => item as string).ToArray(), currentUeVersion, currentFnVersion)) return;
@@ -433,7 +444,7 @@ namespace UFMT.UI
                 exportEmote.MaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMM.fbx";
                 exportEmote.FemaleAnimationFbx = $"Emote_{exportEmote.Codename}_CMF.fbx";
                 string cookedexportEmotePath = Path.Combine(cookedAssetsPath, ueEmotesOsPath, exportEmote.Codename);
-                string OutputFnGameexportEmoteFolder = Path.Combine(outputFnGamePath, "Content", ueEmotesOsPath, exportEmote.Codename);
+                string OutputFnGamexportEmoteFolder = Path.Combine(outputFnGamePath, "Content", ueEmotesOsPath, exportEmote.Codename);
 
                 if (!await FbxConverter.ConvertPsaToFbx(Path.Combine(exportEmote.SourcePath, "Animations", exportEmote.MaleAnimationPsa),
                 Path.Combine(exportEmote.SourcePath, "Fbx", "Animations", exportEmote.MaleAnimationFbx), false)) return;
@@ -461,7 +472,7 @@ namespace UFMT.UI
 
                 await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "emote");
 
-                if (!EmoteValidator.ValidateAfterUeImport(ueProjectPath, ueEmotesOsPath, exportEmote.Codename, exportEmote.SmallIcon, exportEmote.LargeIcon, exportEmote.EID))
+                if (!EmoteValidator.ValidateAfterUeImport(ueProjectPath, ueEmotesOsPath, exportEmote.Codename, exportEmote.SmallIcon, exportEmote.LargeIcon, exportEmote.EID, emoteUsesIntro))
                 {
                     Log.Error($"Unreal Engine import process failed!");
                     return;
@@ -469,7 +480,7 @@ namespace UFMT.UI
 
                 await UnrealProcessRunner.CookFiles(ueProjectPath, ueExecutablePath);
 
-                if (!EmoteValidator.ValidateAfterUeCook(cookedexportEmotePath, exportEmote.Codename, exportEmote.SmallIcon, exportEmote.LargeIcon, exportEmote.EID))
+                if (!EmoteValidator.ValidateAfterUeCook(cookedexportEmotePath, exportEmote.Codename, exportEmote.SmallIcon, exportEmote.LargeIcon, exportEmote.EID, emoteUsesIntro))
                 {
                     Log.Error($"Unreal Engine cook process failed!");
                     return;
@@ -482,17 +493,18 @@ namespace UFMT.UI
                 }
 
                 currentUeVersion.FixRequiredFiles([Path.Combine(cookedexportEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(exportEmote.MaleAnimationFbx)}.uasset"),
-            Path.Combine(cookedexportEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(exportEmote.FemaleAnimationFbx)}.uasset")], [string.Empty]);
+                Path.Combine(cookedexportEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(exportEmote.FemaleAnimationFbx)}.uasset")], [string.Empty]);
                 AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, currentUeVersion.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath, exportEmote.Path);
 
-                EmoteAssetCreator.CopyFilesFromUe(OutputFnGameexportEmoteFolder, new DirectoryInfo(cookedexportEmotePath));
-                EmoteAssetCreator.CreateAnimationMontage(OutputFnGameexportEmoteFolder, Path.GetFileNameWithoutExtension(exportEmote.MaleAnimationFbx),
+                EmoteAssetCreator.CopyFilesFromUe(OutputFnGamexportEmoteFolder, new DirectoryInfo(cookedexportEmotePath));
+                EmoteAssetCreator.CreateAnimationMontage(OutputFnGamexportEmoteFolder, Path.GetFileNameWithoutExtension(exportEmote.MaleAnimationFbx),
                 (float)exportEmote.MaleAnimationLength, currentFnVersion, currentUeVersion, ueEmotesPackagePath, exportEmote.Codename, exportEmote.MaleAnimationJson,
                 (float)exportEmote.LoopSectionStart);
-                EmoteAssetCreator.CreateAnimationMontage(OutputFnGameexportEmoteFolder, Path.GetFileNameWithoutExtension(exportEmote.FemaleAnimationFbx),
+                EmoteAssetCreator.CreateAnimationMontage(OutputFnGamexportEmoteFolder, Path.GetFileNameWithoutExtension(exportEmote.FemaleAnimationFbx),
                 (float)exportEmote.FemaleAnimationLength, currentFnVersion, currentUeVersion, ueEmotesPackagePath, exportEmote.Codename, exportEmote.FemaleAnimationJson,
                 (float)exportEmote.LoopSectionStart);
-                EmoteAssetCreator.CreateSoundCues(OutputFnGameexportEmoteFolder, currentFnVersion, currentUeVersion, ueEmotesPackagePath, exportEmote.Codename);
+                EmoteAssetCreator.CreateSoundCues(OutputFnGamexportEmoteFolder, currentFnVersion, currentUeVersion, ueEmotesPackagePath, exportEmote.Codename, 
+                emoteUsesIntro, (float)exportEmote.LoopSoundStartTime);
                 EmoteAssetCreator.CreateEid(outputFnGamePath, currentFnVersion, currentUeVersion, ueEmotesPackagePath, exportEmote.Codename,
                 exportEmote.EID, exportEmote.Name, exportEmote.Description, exportEmote.Rarity, exportEmote.Series);
                 U4Pak.Pack(outputFnGamePath, Path.Combine(Path.GetDirectoryName(outputFnGamePath), $"z_{exportEmote.Codename}.pak"));
@@ -676,7 +688,8 @@ namespace UFMT.UI
             }
         }
         [JsonIgnore]
-        public string SoundWav { get; set; } = string.Empty;
+        public string LoopSoundFileName { get; set; } = string.Empty;
+        public string IntroSoundFileName { get; set; } = string.Empty;
         private int _soundWavCompressionQuality = 60;
         public int SoundWavCompressionQuality
         {
@@ -690,7 +703,19 @@ namespace UFMT.UI
                 }
             }
         }
-        [JsonIgnore]
+        private double _loopSoundStartTime = 0d;
+        public double LoopSoundStartTime
+        {
+            get => _loopSoundStartTime;
+            set
+            {
+                if (_loopSoundStartTime != value)
+                {
+                    _loopSoundStartTime = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         public string OutputContentPath { get; set; } = string.Empty;
 
         public string Path = string.Empty;
@@ -701,7 +726,8 @@ namespace UFMT.UI
         [JsonIgnore]
         public string IconsPath { get; set; } = string.Empty;
         [JsonIgnore]
-        public string SoundPath { get; set; } = string.Empty;
+        public string LoopSoundFolderPath { get; set; } = string.Empty;
+        public string IntroSoundFolderPath { get; set; } = string.Empty;
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
