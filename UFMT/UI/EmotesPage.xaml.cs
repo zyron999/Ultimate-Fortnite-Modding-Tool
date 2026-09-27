@@ -116,7 +116,6 @@ namespace UFMT.UI
             }
             catch (TaskCanceledException)
             {
-                Log.Test("Returned because of task cancellation exception!");
                 return;
             }
             AppSettings.SetValue("CurrentEmotePath", (sender as TextBox).Text);
@@ -300,7 +299,6 @@ namespace UFMT.UI
         {
             if (CurrentEmote == null || CurrentEmote.Path == null || !Directory.Exists(CurrentEmote.Path) || CurrentEmote.Codename == null) 
             {
-                Log.Test("Returned!");
                 return;
             } 
 

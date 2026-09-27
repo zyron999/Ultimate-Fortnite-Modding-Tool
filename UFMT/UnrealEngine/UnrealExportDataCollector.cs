@@ -68,8 +68,6 @@ namespace UFMT.UnrealEngine
                     UeSkinsPackagePath = ueSkinsPackagePath
                 };
 
-                Log.Test($"The hat is {unrealData.HatMeshName}");
-                unrealData.MeshNames.ForEach(mesh => Log.Test($"Current mesh name: {mesh}"));
                 return unrealData;
             }
             catch (Exception ex)

@@ -826,7 +826,7 @@ namespace UFMT.UI
             }
             catch (Exception ex)
             {
-                Log.Error($"An error occured while trying to update dropdowns! {ex}");
+                Log.Error($"An error occured while trying to update dropdowns! {ex.Message}");
             }
             SmallIconComboBox.Items.Clear();
             LargeIconComboBox.Items.Clear();
