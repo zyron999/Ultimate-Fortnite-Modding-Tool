@@ -165,12 +165,12 @@ namespace UFMT.UI
                 Type = "Charm",
             };
 
-            if (CurrentUeVersion.ReplaceDefaultEngineIni)
+            if (CurrentUeVersion.ReplaceDefaultEngineIni && App.Settings.UeProjectPath != null && Path.Exists(App.Settings.UeProjectPath))
             {
                 string defaultEngineIniPath = Path.Combine(Path.GetDirectoryName(App.Settings.UeProjectPath),
                 "Config", "DefaultEngine.ini");
                 byte[] defaultEngineIniInBytes = TemplateLoader.GetEmbeddedFile(CurrentUeVersion.Name, "RawUeAssets", "DefaultEngine.ini");
-                if (defaultEngineIniInBytes != null) File.WriteAllBytes(defaultEngineIniPath, defaultEngineIniInBytes);
+                if (defaultEngineIniInBytes != null && Path.Exists(defaultEngineIniPath)) File.WriteAllBytes(defaultEngineIniPath, defaultEngineIniInBytes);
             }
 
             CurrentSkinPathTextBox_TextChanged("NoDelay", null);
