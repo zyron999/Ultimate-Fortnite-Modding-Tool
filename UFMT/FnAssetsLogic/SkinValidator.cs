@@ -58,6 +58,13 @@ namespace UFMT.FnAssetsLogic
                 Console.WriteLine($"Created {physicsPath}");
             }
 
+            string[] physicsCpTypes = ["Body", "FaceAcc", "Hat"];
+            foreach (string cpType in physicsCpTypes)
+            {
+                string physicsCpPath = Path.Combine(physicsPath, cpType);
+                if (!Directory.Exists(physicsCpPath)) Directory.CreateDirectory(physicsCpPath);
+            }
+
             currentSkin.Path = currentSkinFolderPath;
             currentSkin.SourcePath = sourcePath;
             currentSkin.MeshesPath = meshesPath;

@@ -71,7 +71,7 @@ namespace UFMT.FnAssetsLogic
             }
             catch (Exception ex)
             {
-                Log.Error($"An error occured while trying to find skin's character parts! {ex.Message}");
+                Log.Error($"An error occured while trying to find skin's character parts! {ex}");
                 return null;
             }
         }
