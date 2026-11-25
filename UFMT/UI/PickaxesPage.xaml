@@ -9,6 +9,68 @@
     mc:Ignorable="d">
 
     <Grid>
-
+        <ScrollViewer>
+            <StackPanel Margin="32" Spacing="32">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Pickaxes Folder Path" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="The directory where your pickaxe folders are saved." 
+                               Margin="0,0,0,8" Foreground="LightGray" FontSize="15"/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox x:Name="PickaxesPathTextBox" Width="500" TextChanged="PickaxesPathTextBox_TextChanged"
+                        PlaceholderText="C:\Users\Example\Desktop\CustomPickaxes"/>
+                        <Button Content="Browse" x:Name="PickaxesPathBrowse" Click="BrowseButton_Click"
+                         VerticalAlignment="Bottom"/>
+                        <Button Content="Create a pickaxe folder" Style="{StaticResource AccentButtonStyle}"
+                         Click="CreatePickaxeFolder_Click" VerticalAlignment="Bottom"/>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Current Pickaxe Folder Path" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="The directory where your pickaxe's assets are saved."
+                               Foreground="LightGray" FontSize="15" Margin="0,0,0,8" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox x:Name="CurrentPickaxePathTextBox" Width="500" TextChanged="CurrentPickaxePathTextBox_TextChanged"
+                        PlaceholderText="C:\Users\Example\Desktop\CustomPickaxes\QuarterClaspAbove"/>
+                        <Button Content="Browse" x:Name="CurrentPickaxePathBrowse" Click="BrowseButton_Click"
+                        VerticalAlignment="Bottom"/>
+                        <Button Width="31" Height="31" Padding="0" VerticalAlignment="Bottom" Click="Reimport_Click">
+                            <Image Source="ms-appx:///Assets/ReimportButton.png" Width="25" Stretch="Uniform" ToolTipService.ToolTip="Reimport"/>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Export settings" FontSize="20" FontWeight="SemiBold" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Export" Foreground="Gold" Click="ExportButton_Click"
+                        VerticalAlignment="Bottom" FontSize="15"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+        <ContentDialog x:Name="CreateFolderDialog"
+               Title="New Pickaxe Folder"
+               SecondaryButtonClick="CreateFolderDialog_SecondaryButtonClick"
+               SecondaryButtonText="Create" PrimaryButtonText="Cancel" DefaultButton="Secondary">
+            <StackPanel Spacing="10" Margin="0,10,0,0">
+                <TextBlock Text="Enter the codename of your pickaxe (this will be the name of the created folder)"
+        TextWrapping="Wrap"/>
+                <TextBox x:Name="CodenameFolderCreateTextBox" 
+                 PlaceholderText="QuarterClaspAbove"
+                 HorizontalAlignment="Stretch" MaxLength="30"/>
+            </StackPanel>
+        </ContentDialog>
+        <ContentDialog x:Name="AddSeriesDialog"
+               Title="New Series"
+               SecondaryButtonClick="AddSeriesDialog_SecondaryButtonClick"
+               SecondaryButtonText="Add" PrimaryButtonText="Cancel" Closed="AddSeriesDialogClosed"
+               DefaultButton="Secondary">
+            <StackPanel Spacing="10" Margin="0,10,0,0">
+                <TextBlock Text="Enter the codename of your series (make sure to add your series to the pak later). The series must be made in the default series path: /Game/Athena/Items/Cosmetics/Series"
+        TextWrapping="Wrap"/>
+                <TextBox x:Name="AddSeriesTextBox" 
+                 PlaceholderText="ZyronSeries"
+                 HorizontalAlignment="Stretch" MaxLength="30"/>
+            </StackPanel>
+        </ContentDialog>
     </Grid>
 </Page>
