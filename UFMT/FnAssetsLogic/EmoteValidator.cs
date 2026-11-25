@@ -61,7 +61,7 @@ namespace UFMT.FnAssetsLogic
             string soundPath = Path.Combine(sourcePath, "Sound");
             if (!Directory.Exists(soundPath))
             {
-                Log.Error($"Cannot find Sound folder inside \"{soundPath}\"");
+                Log.Error($"Cannot find Sound folder inside \"{sourcePath}\"");
                 return false;
             }
 

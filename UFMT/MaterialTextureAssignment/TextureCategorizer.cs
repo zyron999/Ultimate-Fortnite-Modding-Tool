@@ -22,7 +22,7 @@ namespace UFMT.MaterialTextureAssignment
 
         internal static List<string> GetTexturesByMultipleSuffix(string texturesPath, List<string> suffixes)
         {
-            List<string> textures = 
+            List<string> textures =
             Directory.GetFiles(texturesPath, "*.png").Select(tex => Path.GetFileNameWithoutExtension(tex)).Where(tex => suffixes.Any(suffix => tex.EndsWith(suffix))).ToList();
             if (textures.Count == 0) suffixes.ForEach(suffix => Log.Warning($"No textures found with the suffix \"{suffix}\"!"));
 
@@ -42,7 +42,7 @@ namespace UFMT.MaterialTextureAssignment
                 smallIcon = textures.FirstOrDefault(tex => (tex.ToLower().StartsWith("t-soldier") || tex.ToLower().StartsWith("t_soldier")) &&
                 !tex.ToLower().EndsWith("-l") && !tex.ToLower().EndsWith("_l"));
             }
-            else if (cosmeticType == "emote")
+            else if (cosmeticType == "emote" || cosmeticType == "pickaxe")
             {
                 largeIcon = textures.FirstOrDefault(tex => (tex.ToLower().StartsWith("t-icon") || tex.ToLower().StartsWith("t_icon")) &&
                 (tex.ToLower().EndsWith("-l") || tex.ToLower().EndsWith("_l")));
