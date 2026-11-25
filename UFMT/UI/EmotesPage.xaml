@@ -128,7 +128,7 @@
                 <TextBlock Text="Enter the codename of your emote (this will be the name of the created folder)"
                 TextWrapping="Wrap"/>
                 <TextBox x:Name="CodenameFolderCreateTextBox" 
-                         PlaceholderText="Cyclone"
+                         PlaceholderText="VoidRedemption"
                          HorizontalAlignment="Stretch" MaxLength="30"/>
             </StackPanel>
         </ContentDialog>
