@@ -632,7 +632,6 @@ namespace UFMT.UI
                     OnPropertyChanged();
                 }
             }
-
         }
         [JsonIgnore]
         public string MaleAnimationPsa { get; set; } = string.Empty;
