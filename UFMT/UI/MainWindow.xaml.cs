@@ -87,6 +87,7 @@ namespace UFMT
                 string tag = args.InvokedItemContainer.Tag.ToString();
                 if (tag == "SkinsPage") ContentFrame.Navigate(typeof(SkinsPage));
                 if (tag == "EmotesPage") ContentFrame.Navigate(typeof(EmotesPage));
+                if (tag == "PickaxesPage") ContentFrame.Navigate(typeof(PickaxesPage));
             }
         }
     }

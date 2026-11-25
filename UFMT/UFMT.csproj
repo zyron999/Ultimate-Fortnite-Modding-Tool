@@ -26,7 +26,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <None Remove="SettingsPage.xaml" />
-	  <None Remove="UI\EmotesPage.xaml" />
+	  <None Remove="UI\PickaxesPage.xaml" />
 		<None Update="Assets\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
@@ -360,7 +360,7 @@
     <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <ItemGroup>
-    <Page Update="UI\EmotesPage.xaml">
+    <Page Update="UI\PickaxesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

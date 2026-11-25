@@ -11,7 +11,7 @@
     <None Update="App.xaml">
       <SubType>Designer</SubType>
     </None>
-    <Page Update="UI\EmotesPage.xaml">
+    <Page Update="UI\PickaxesPage.xaml">
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>

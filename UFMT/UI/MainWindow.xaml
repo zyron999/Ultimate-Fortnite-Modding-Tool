@@ -31,6 +31,12 @@
                         <TextBlock Text="Emotes" FontSize="20" VerticalAlignment="Center"/>
                     </StackPanel>
                 </NavigationViewItem>
+                <NavigationViewItem Tag="PickaxesPage" Height="100" SelectsOnInvoked="True">
+                    <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Image Source="ms-appx:///Assets/PickaxesIcon.png" Width="32" Height="32"/>
+                        <TextBlock Text="Pickaxes" FontSize="20" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </NavigationViewItem>
             </NavigationView.MenuItems>
 
             <NavigationView.Content>
