@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UFMT;
+using UFMT.Core;
 using UFMT.MaterialTextureAssignment;
 using UFMT.UI;
 
@@ -38,6 +39,19 @@ namespace UFMT.MaterialTextureAssignment
             materialsWithMissingTextures = GetMaterialsWithMissingTextures(materials);
             if (materialsWithMissingTextures.Count == 0) return;
             GuessMaterialsTextures(materialsWithMissingTextures, materials);
+        }
+
+        internal static void AssignTexturesToAllPickaxeMaterials(List<string> textureOptions, ObservableCollection<PickaxeMaterial> materials)
+        {
+            textureOptions = textureOptions.Where(tex => !DefaultTextureSetup.DefaultTexturesColors.Keys.Contains(tex)).ToList();
+            if (textureOptions.Count == 0) return;
+            foreach (string tex in textureOptions)
+            {
+                if (tex.EndsWith("_D") || tex.EndsWith("Diffuse")) foreach (PickaxeMaterial mat in materials) mat.SelectedDiffuse = tex;
+                else if (tex.EndsWith("_M") || tex.EndsWith("Mask")) foreach (PickaxeMaterial mat in materials) mat.SelectedMask = tex;
+                else if (tex.EndsWith("_N") || tex.EndsWith("Normal")) foreach (PickaxeMaterial mat in materials) mat.SelectedNormal = tex;
+                else if (tex.EndsWith("_S") || tex.EndsWith("Specular")) foreach (PickaxeMaterial mat in materials) mat.SelectedSpecular = tex;
+            }
         }
 
         private static string GetTextureKeyword(string textureName, string skinCodename)

@@ -14,7 +14,7 @@ namespace UFMT.MaterialTextureAssignment
 {
     internal static class DefaultTextureSetup
     {
-        private static Dictionary<string, int[]> DefaultTexturesColors = new() //The colors are in ARGB
+        public static Dictionary<string, int[]> DefaultTexturesColors = new() //The colors are in ARGB
         {
             {"Default_Diffuse", [255, 228, 228, 228]},
             {"Default_Mask", [255, 252, 172, 0]},

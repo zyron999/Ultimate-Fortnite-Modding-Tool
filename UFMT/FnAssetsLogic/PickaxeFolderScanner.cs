@@ -30,8 +30,7 @@ namespace UFMT.FnAssetsLogic
 
                 string[] physicsJsons = Directory.GetFiles(physicsPath, "*.json");
 
-
-                return (true, Path.GetFileName(pskPaths[0]), physicsJsons.Select(json => Path.GetFileName(json)).ToArray());
+                return (true, pskPaths[0], physicsJsons.Select(json => Path.GetFileName(json)).ToArray());
             }
             catch (Exception ex)
             {

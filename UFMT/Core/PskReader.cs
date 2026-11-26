@@ -16,7 +16,7 @@ namespace UFMT.Core
 {
     internal static class PskReader
     {
-        internal static List<Material> GetMaterialData
+        internal static List<Material> GetCpMaterialData
         (List<string> pskPaths, List<CharacterPart> characterParts, bool swizzleMats, SkinsPage parentPage)
         {
             List<string> alreadyUsedMatNames = new List<string>();
@@ -56,6 +56,47 @@ namespace UFMT.Core
                     {
                         r.BaseStream.Seek((long)sz * ct, SeekOrigin.Current);
                     }
+                }
+            }
+            return materials;
+        }
+
+
+
+        internal static List<PickaxeMaterial> GetPickaxeMaterialData (string pskPath, bool swizzleMats, PickaxesPage parentPage, List<string> textureOptions)
+        {
+            List<string> alreadyUsedMatNames = new List<string>();
+            List<PickaxeMaterial> materials = new();
+
+            using var r = new BinaryReader(File.OpenRead(pskPath));
+
+            while (r.BaseStream.Position < r.BaseStream.Length)
+            {
+                string id = Encoding.ASCII.GetString(r.ReadBytes(24)).Trim();
+                int sz = r.ReadInt32();
+                int ct = r.ReadInt32();
+                if (id.Contains("MATT0000"))
+                {
+                    for (int i = 0; i < ct; i++)
+                    {
+                        string matName = Encoding.ASCII.GetString(r.ReadBytes(64)).Trim('\0').Trim();
+                        if (!alreadyUsedMatNames.Contains(matName))
+                        {
+                            materials.Add(new PickaxeMaterial()
+                            {
+                                Name = matName,
+                                ParentPage = parentPage,
+                                Swizzle = swizzleMats,
+                                TextureOptions = textureOptions
+                            });
+                        }
+                        alreadyUsedMatNames.Add(matName);
+                        r.BaseStream.Seek(sz - 64, SeekOrigin.Current);
+                    }
+                }
+                else
+                {
+                    r.BaseStream.Seek((long)sz * ct, SeekOrigin.Current);
                 }
             }
             return materials;

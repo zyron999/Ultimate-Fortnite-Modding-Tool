@@ -224,7 +224,7 @@ namespace UFMT.UI
             CurrentSkin.LobbyAnimationJson = lobbyAnimationJson;
 
             List<Material> materials =
-            PskReader.GetMaterialData(CurrentSkin.CharacterParts.Select(cp => cp.PskPath).ToList(),
+            PskReader.GetCpMaterialData(CurrentSkin.CharacterParts.Select(cp => cp.PskPath).ToList(),
             CurrentSkin.CharacterParts, allSwizzleCheckBox.IsChecked.Value, this);
 
             if (materials == null) return;
