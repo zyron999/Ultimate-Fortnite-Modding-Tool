@@ -151,6 +151,7 @@ namespace UFMT.UI
                 if (!PickaxeValidator.ValidateAfterPathChange((sender as TextBox)?.Text, CurrentPickaxe)) return;
                 (bool success, CurrentPickaxe.PskPath, CurrentPickaxe.PhysicsAssetJsons) = PickaxeFolderScanner.GetMeshData(CurrentPickaxe.MeshesPath, CurrentPickaxe.PhysicsPath);
                 if (!success) return;
+                DefaultTextureSetup.CreateDefaultTextures(DefaultTextureSetup.FindMissingDefaultTextures(CurrentPickaxe.TexturesPath), CurrentPickaxe.TexturesPath);
                 CurrentPickaxe.Textures = Directory.GetFiles(CurrentPickaxe.TexturesPath).Select(tex => Path.GetFileNameWithoutExtension(tex)).ToList();
                 CurrentPickaxe.Materials = new ObservableCollection<PickaxeMaterial>(PskReader.GetPickaxeMaterialData(CurrentPickaxe.PskPath, false, this, CurrentPickaxe.Textures));
 
@@ -162,7 +163,6 @@ namespace UFMT.UI
                 if (largeIcon == null || smallIcon == null) return;
                 if (largeIcon != string.Empty) CurrentPickaxe.LargeIcon = largeIcon;
                 if (smallIcon != string.Empty) CurrentPickaxe.SmallIcon = smallIcon;
-                DefaultTextureSetup.CreateDefaultTextures(DefaultTextureSetup.FindMissingDefaultTextures(CurrentPickaxe.TexturesPath), CurrentPickaxe.TexturesPath);
                 MaterialTextureAssigner.AssignTexturesToAllPickaxeMaterials(CurrentPickaxe.Textures, CurrentPickaxe.Materials);
 
                 CurrentPickaxe.PID = $"Pickaxe_{CurrentPickaxe.Codename}";
@@ -396,11 +396,11 @@ namespace UFMT.UI
 
             Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Physics"));
 
-            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound", "Impact"));
+            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sounds", "Impact"));
 
-            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound", "Ready"));
+            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sounds", "Ready"));
 
-            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sound", "Swing"));
+            Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Sounds", "Swing"));
 
             Directory.CreateDirectory(Path.Combine(PickaxesPathTextBox.Text, CodenameFolderCreateTextBox.Text, "Source", "Textures"));
 
@@ -412,12 +412,42 @@ namespace UFMT.UI
 
         private void AddSeriesDialog_SecondaryButtonClick (ContentDialog sender, ContentDialogButtonClickEventArgs args)
         {
+            args.Cancel = true;
+            if (AddSeriesTextBox.Text.ToString() == string.Empty)
+            {
+                Log.Error("The series' codename cannot be empty!");
+                return;
+            }
+            if (AddSeriesTextBox.Text.Length > 100)
+            {
+                Log.Error("The codename cannot be longer than 100 characters!");
+                return;
+            }
+            if (seriesComboBox.Items.Contains(AddSeriesTextBox.Text.ToString()))
+            {
+                Log.Error($"{AddSeriesTextBox.Text} already exists!");
+                return;
+            }
 
+            int addIndex = seriesComboBox.Items.IndexOf("+Add");
+            if (addIndex != -1)
+            {
+                seriesComboBox.Items.Insert(addIndex, AddSeriesTextBox.Text);
+            }
+            else
+            {
+                seriesComboBox.Items.Add(AddSeriesTextBox.Text);
+            }
+            Console.WriteLine($"Added {AddSeriesTextBox.Text}");
+            seriesComboBox.SelectedItem = AddSeriesTextBox.Text;
+            Console.WriteLine($"Selected {AddSeriesTextBox.Text}");
+            PreviouslySelectedSeries = AddSeriesTextBox.Text;
+            args.Cancel = false;
         }
 
         private void AddSeriesDialogClosed(object sender, ContentDialogClosedEventArgs e)
         {
-
+            seriesComboBox.SelectedItem = PreviouslySelectedSeries;
         }
 
         private void RemoveSeriesButton_Click(object sender, RoutedEventArgs e)
@@ -465,7 +495,15 @@ namespace UFMT.UI
                 }
             }
         }
+        public void SavePickaxeConfig()
+        {
+            if (CurrentPickaxe == null || string.IsNullOrEmpty(CurrentPickaxe.Path)) return;
 
+            string jsonPath = Path.Combine(CurrentPickaxe.Path, $"{CurrentPickaxe.Codename}_Settings.json");
+            string jsonString = JsonSerializer.Serialize(CurrentPickaxe, SaveOptions);
+
+            File.WriteAllText(jsonPath, jsonString);
+        }
         private void LoadPickaxeConfigInto(string jsonPath, PickaxeData target)
         {
             if (!File.Exists(jsonPath)) return;
@@ -577,7 +615,6 @@ namespace UFMT.UI
             }
         }
 
-
         private static readonly JsonSerializerOptions SaveOptions = new()
         {
             WriteIndented = true,
@@ -598,16 +635,6 @@ namespace UFMT.UI
         }
             }
         };
-
-        public void SavePickaxeConfig()
-        {
-            if (CurrentPickaxe == null || string.IsNullOrEmpty(CurrentPickaxe.Path)) return;
-
-            string jsonPath = Path.Combine(CurrentPickaxe.Path, $"{CurrentPickaxe.Codename}_Settings.json");
-            string jsonString = JsonSerializer.Serialize(CurrentPickaxe, SaveOptions);
-
-            File.WriteAllText(jsonPath, jsonString);
-        }
     }
 
     public class PickaxeData : INotifyPropertyChanged
