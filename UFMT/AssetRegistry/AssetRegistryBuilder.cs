@@ -12,17 +12,20 @@ namespace UFMT.AssetRegistry
     internal static class AssetRegistryBuilder
     {
         internal static void CreateAssetRegistry(string cookedAssetsPath, string ueVersionNumber, string outputFnGamePath, 
-        string ueSkinsPackagePath, string ueEmotesPackagePath, string currentCosmeticPath)
+        string ueSkinsPackagePath, string ueEmotesPackagePath, string uePickaxesPackagePath, string currentCosmeticPath)
         {
             Console.WriteLine("Creating AssetRegistry.bin!");
             // Just in case the user has the project folder named differently than the .uproject
             string cookedSkinsPath = Path.Combine(cookedAssetsPath, ueSkinsPackagePath.Substring(6, ueSkinsPackagePath.Length - 6).Replace("/", "\\"));
             string cookedEmotesPath = Path.Combine(cookedAssetsPath, ueEmotesPackagePath.Substring(6, ueEmotesPackagePath.Length - 6).Replace("/", "\\"));
+            string cookedPickaxesPath = Path.Combine(cookedAssetsPath, uePickaxesPackagePath.Substring(6, uePickaxesPackagePath.Length - 6).Replace("/", "\\"));
 
             string[] customSkinFolders = [];
             if (Path.Exists(cookedSkinsPath)) customSkinFolders = Directory.GetDirectories(Path.Combine(cookedSkinsPath));
             string[] customEmoteFolders = [];
             if (Path.Exists(cookedEmotesPath)) customEmoteFolders = Directory.GetDirectories(Path.Combine(cookedEmotesPath));
+            string[] customPickaxeFolders = [];
+            if (Path.Exists(cookedPickaxesPath)) customPickaxeFolders = Directory.GetDirectories(Path.Combine(cookedPickaxesPath));
             List<string> cosmeticJsons = new();
 
             Console.WriteLine($"Searching for CIDs inside {cookedAssetsPath}...");
@@ -43,7 +46,7 @@ namespace UFMT.AssetRegistry
                         root["PackageName"] = root["PackageName"]!.Value<string>()!.Replace(
                             $"/Game/Athena/Items/Cosmetics/Characters/CID_Template",
                             $"/Game/Athena/Items/Cosmetics/Characters/{currentFoundCid}");
-                        root["AssetName"] = root["PackageName"]!.Value<string>()!.Replace(
+                        root["AssetName"] = root["AssetName"]!.Value<string>()!.Replace(
                             "CID_Template", currentFoundCid);
                         var tagAndValue = root["TagAndValue"]!.ToArray();
                         foreach (var tag in tagAndValue)
@@ -82,7 +85,7 @@ namespace UFMT.AssetRegistry
                         root["PackageName"] = root["PackageName"]!.Value<string>()!.Replace(
                             $"/Game/Athena/Items/Cosmetics/Dances/EID_Template",
                             $"/Game/Athena/Items/Cosmetics/Dances/{currentFoundEid}");
-                        root["AssetName"] = root["PackageName"]!.Value<string>()!.Replace(
+                        root["AssetName"] = root["AssetName"]!.Value<string>()!.Replace(
                             "EID_Template", currentFoundEid);
                         var tagAndValue = root["TagAndValue"]!.ToArray();
                         foreach (var tag in tagAndValue)
@@ -100,6 +103,88 @@ namespace UFMT.AssetRegistry
                     {
                         Log.Warning($"no uasset files found inside {customEmoteFolder}");
                     }
+                }
+            }
+
+            Console.WriteLine($"Searching for PIDs inside {cookedAssetsPath}...");
+            if (customPickaxeFolders.Length != 0)
+            {
+                foreach (string customPickaxeFolder in customPickaxeFolders)
+                {
+                    string[] filesFound = Directory.GetFiles(customPickaxeFolder, "*.uasset");
+                    string currentFoundPid = string.Empty;
+                    if (filesFound.Length > 0) currentFoundPid = Path.GetFileNameWithoutExtension(filesFound[0]);
+                    else
+                    {
+                        Log.Warning($"no uasset files found inside {customPickaxeFolder}");
+                        continue;
+                    }
+
+                    string json = System.Text.Encoding.UTF8.GetString(TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Pid.json"));
+                    var root = JObject.Parse(json);
+                    root["ObjectPath"] = root["ObjectPath"]!.Value<string>()!.Replace(
+                        $"/Game/Athena/Items/Cosmetics/Pickaxes/Pickaxe_ID_094_Template.Pickaxe_ID_094_Template",
+                        $"/Game/Athena/Items/Cosmetics/Pickaxes/{currentFoundPid}.{currentFoundPid}");
+                    root["PackageName"] = root["PackageName"]!.Value<string>()!.Replace(
+                        $"/Game/Athena/Items/Cosmetics/Pickaxes/Pickaxe_ID_094_Template",
+                        $"/Game/Athena/Items/Cosmetics/Pickaxes/{currentFoundPid}");
+                    root["AssetName"] = root["AssetName"]!.Value<string>()!.Replace(
+                        "Pickaxe_ID_094_Template", currentFoundPid);
+                    var tagAndValue = root["TagAndValue"]!.ToArray();
+                    foreach (var tag in tagAndValue)
+                    {
+                        if (tag["Item1"]!.Value<string>() == "PrimaryAssetName")
+                        {
+                            tag["Item2"] = currentFoundPid;
+                            break;
+                        }
+                    }
+                    cosmeticJsons.Add(root.ToString(Formatting.Indented));
+                    Console.WriteLine($"Added {currentFoundPid} to the AssetRegistry.bin!");
+
+                    string codename = Path.GetFileName(customPickaxeFolder);
+                    string wid = $"WID_Pickaxe_{codename}";
+
+                    json = System.Text.Encoding.UTF8.GetString(TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Wid.json"));
+                    root = JObject.Parse(json);
+                    root["ObjectPath"] = root["ObjectPath"]!.Value<string>()!.Replace(
+                        $"/Game/Athena/Items/Weapons/WID_Pickaxe_Template.WID_Pickaxe_Template",
+                        $"/Game/Athena/Items/Weapons/{wid}.{wid}");
+                    root["PackageName"] = root["PackageName"]!.Value<string>()!.Replace(
+                        $"/Game/Athena/Items/Weapons/WID_Pickaxe_Template",
+                        $"/Game/Athena/Items/Weapons/{wid}");
+                    root["AssetName"] = root["AssetName"]!.Value<string>()!.Replace("WID_Pickaxe_Template", wid);
+                    tagAndValue = root["TagAndValue"]!.ToArray();
+                    foreach (var tag in tagAndValue)
+                    {
+                        if (tag["Item1"]!.Value<string>() == "PrimaryAssetName")
+                        {
+                            tag["Item2"] = wid;
+                            continue;
+                        }
+                        else if (tag["Item1"].Value<string>() == "AssetBundleData")
+                        {
+                            tag["Item2"] = 
+                            "(Bundles=((BundleName=\"Equipped\"," +
+                            $"BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_{codename}.B_Melee_Impact_Pickaxe_Athena_{codename}_C," +
+                            "/Game/Items/Alterations/DamageTypeAlterations/BaseAlteration_ImpactDamage.BaseAlteration_ImpactDamage," +
+                            "/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C))," +
+                            "(BundleName=\"ClientAthenaPreload\"," +
+                            $"BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_{codename}.B_Melee_Impact_Pickaxe_Athena_{codename}_C," +
+                            "/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C))," +
+                            "(BundleName=\"ServerAthenaPreload\"," +
+                            $"BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_{codename}.B_Melee_Impact_Pickaxe_Athena_{codename}_C))," +
+                            "(BundleName=\"ItemsInInventoryInZone\"," +
+                            "BundleAssets=(/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C))," +
+                            "(BundleName=\"DroppedItem\"," +
+                            "BundleAssets=(/Game/Weapons/FORT_Melee/Meshes/SK_Pick.SK_Pick," +
+                            "/Game/Sounds/Fort_GamePlay_Sounds/Loot/Collect_Loot.Collect_Loot))," +
+                            "(BundleName=\"ServerAthena\"," +
+                            $"BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_{codename}.B_Melee_Impact_Pickaxe_Athena_{codename}_C))))";
+                        }
+                    }
+                    cosmeticJsons.Add(root.ToString(Formatting.Indented));
+                    Console.WriteLine($"Added {wid} to the AssetRegistry.bin!");
                 }
             }
 

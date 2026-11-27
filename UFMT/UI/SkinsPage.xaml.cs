@@ -323,6 +323,7 @@ namespace UFMT.UI
             string ueExecutablePath = App.Settings.UeExecutablePath;
             string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
             string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
+            string uePickaxesPackagePath = App.Settings.UePickaxesPackagePath;
             bool success = true;
 
             if (!SkinValidator.ValidateBeforeExport
@@ -389,7 +390,8 @@ namespace UFMT.UI
             (cookedCodenamePath, "Animations", $"{exportSkin.Codename}_Lobby_Animation.uasset")], exportSkin.CharacterParts.Select
             (cp => Path.Combine(cookedCodenamePath, "Meshes", $"{Path.GetFileNameWithoutExtension(cp.FbxPath)}.uasset")).ToArray());
 
-            AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, ueVer.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath, exportSkin.Path);
+            AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, ueVer.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath,
+            uePickaxesPackagePath, exportSkin.Path);
 
             DirectoryInfo cookedCharacterDirectory = new DirectoryInfo(
             Path.Combine(cookedAssetsPath, ueSkinsOsPath, exportSkin.Codename));

@@ -1,0 +1,37 @@
+{
+  "ObjectPath": "/Game/Athena/Items/Weapons/WID_Pickaxe_Template.WID_Pickaxe_Template",
+  "PackagePath": "/Game/Athena/Items/Weapons",
+  "AssetClass": "FortWeaponMeleeItemDefinition",
+  "PackageName": "/Game/Athena/Items/Weapons/WID_Pickaxe_Template",
+  "AssetName": "WID_Pickaxe_Template",
+  "TagAndValue": [
+    {
+      "Item1": "PrimaryAssetType",
+      "Item2": "Weapon"
+    },
+    {
+      "Item1": "PrimaryAssetName",
+      "Item2": "WID_Pickaxe_Template"
+    },
+    {
+      "Item1": "AssetBundleData",
+      "Item2": "(Bundles=((BundleName=\"Equipped\",BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_Template.B_Melee_Impact_Pickaxe_Athena_Template_C,/Game/Items/Alterations/DamageTypeAlterations/BaseAlteration_ImpactDamage.BaseAlteration_ImpactDamage,/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C)),(BundleName=\"ClientAthenaPreload\",BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_Template.B_Melee_Impact_Pickaxe_Athena_Template_C,/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C)),(BundleName=\"ServerAthenaPreload\",BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_Template.B_Melee_Impact_Pickaxe_Athena_Template_C)),(BundleName=\"ItemsInInventoryInZone\",BundleAssets=(/Game/Athena/Items/Weapons/Abilities/GAB_Melee_ImpactCombo_Athena.GAB_Melee_ImpactCombo_Athena_C)),(BundleName=\"DroppedItem\",BundleAssets=(/Game/Weapons/FORT_Melee/Meshes/SK_Pick.SK_Pick,/Game/Sounds/Fort_GamePlay_Sounds/Loot/Collect_Loot.Collect_Loot)),(BundleName=\"ServerAthena\",BundleAssets=(/Game/Weapons/FORT_Melee/Blueprints/Impact/B_Melee_Impact_Pickaxe_Athena_Template.B_Melee_Impact_Pickaxe_Athena_Template_C))))"
+    },
+    {
+      "Item1": "DisplayName",
+      "Item2": "NSLOCTEXT(\"\", \"22B33066433490F428D9EB8406F5E76A\", \"Harvesting Tool\")"
+    },
+    {
+      "Item1": "ItemType",
+      "Item2": "WeaponHarvest"
+    },
+    {
+      "Item1": "bNeverPersisted",
+      "Item2": "True"
+    }
+  ],
+  "ChunkIDs": [
+    10
+  ],
+  "PackageTags": 262144
+}

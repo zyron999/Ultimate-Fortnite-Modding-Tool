@@ -424,6 +424,7 @@ namespace UFMT.UI
                 string blenderPath = App.Settings.BlenderPath;
                 string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
                 string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
+                string uePickaxesPackagePath = App.Settings.UePickaxesPackagePath;
                 UeVersion currentUeVersion = CurrentUeVersion;
                 FnVersion currentFnVersion = CurrentFnVersion;
                 bool emoteUsesIntro = CurrentEmote.IntroSoundFileName != string.Empty && 
@@ -492,7 +493,8 @@ namespace UFMT.UI
 
                 currentUeVersion.FixRequiredFiles([Path.Combine(cookedExportEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(exportEmote.MaleAnimationFbx)}.uasset"),
                 Path.Combine(cookedExportEmotePath, "Animations", $"{Path.GetFileNameWithoutExtension(exportEmote.FemaleAnimationFbx)}.uasset")], [string.Empty]);
-                AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, currentUeVersion.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath, exportEmote.Path);
+                AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, currentUeVersion.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath,
+                uePickaxesPackagePath, exportEmote.Path);
 
                 EmoteAssetCreator.CopyFilesFromUe(OutputFnGameExportEmoteFolder, new DirectoryInfo(cookedExportEmotePath));
                 EmoteAssetCreator.CreateAnimationMontage(OutputFnGameExportEmoteFolder, Path.GetFileNameWithoutExtension(exportEmote.MaleAnimationFbx),

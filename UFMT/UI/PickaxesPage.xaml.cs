@@ -14,6 +14,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using UFMT.AssetRegistry;
 using UFMT.Blender;
 using UFMT.Core;
 using UFMT.FnAssets;
@@ -296,55 +297,70 @@ namespace UFMT.UI
 
         private async void ExportButton_Click(object sender, RoutedEventArgs e)
         {
-            PickaxeData exportPickaxe = CurrentPickaxe.Clone();
-            UeVersion currentUeVersion = CurrentUeVersion;
-            FnVersion currentFnVersion = CurrentFnVersion;
-            string ueProjectPath = App.Settings.UeProjectPath;
-            string ueExecutablePath = App.Settings.UeExecutablePath;
-            string uePickaxesPackagePath = App.Settings.UePickaxesPackagePath;
-            bool success = true;
-
-            if (!PickaxeValidator.ValidateBeforeExportProcess(uePickaxesPackagePath, ueProjectPath, ueExecutablePath, exportPickaxe.Name, exportPickaxe.Description,
-            exportPickaxe.Rarity, rarityComboBox.Items.Select(item => item as string).ToArray(), currentUeVersion, CurrentFnVersion)) return;
-            if (currentFnVersion.ManuallySwizzleMaterials) success = 
-            (TextureSwizzler.SwizzleSpecularTextures(exportPickaxe.TexturesPath, exportPickaxe.Materials.Select(mat => mat.SelectedSpecular).ToArray()));
-            if (!success) return;
-
-            exportPickaxe.FbxPath = Path.Combine(exportPickaxe.SourcePath, "Fbx", "Meshes", $"SK_{exportPickaxe.Codename}.fbx");
-            if (!await FbxConverter.ConvertPskToFbx(exportPickaxe.PskPath, exportPickaxe.FbxPath)) return;
-
-            string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(ueProjectPath),
-            "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(ueProjectPath), "Content"); ;
-            string outputFnGamePath = Path.Combine(exportPickaxe.Path, "Output", currentFnVersion.Name, "FortniteGame");
-            string uePickaxesOsPath = uePickaxesPackagePath.Substring(6, uePickaxesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
-            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
-            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
-            string cookedExportEmotePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, exportPickaxe.Codename);
-            string OutputFnGameExportEmoteFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
-
-            UnrealExportPickaxeData unrealData = UnrealExportDataCollector.CollectPickaxeData(exportPickaxe, uePickaxesPackagePath, currentUeVersion.Name);
-            if (unrealData == null) return;
-
-            if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedExportEmotePath, currentUeVersion.Name,
-            currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
-
-            string jsonString = JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportPickaxeData);
-            await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "pickaxe");
-            if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
-            unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
-            exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath))
+            try
             {
-                Log.Error($"Unreal Engine import process failed!");
-                return;
+                PickaxeData exportPickaxe = CurrentPickaxe.Clone();
+                UeVersion currentUeVersion = CurrentUeVersion;
+                FnVersion currentFnVersion = CurrentFnVersion;
+                string ueProjectPath = App.Settings.UeProjectPath;
+                string ueExecutablePath = App.Settings.UeExecutablePath;
+                string uePickaxesPackagePath = App.Settings.UePickaxesPackagePath;
+                string ueEmotesPackagePath = App.Settings.UeEmotesPackagePath;
+                string ueSkinsPackagePath = App.Settings.UeSkinsPackagePath;
+                bool success = true;
+
+                if (!PickaxeValidator.ValidateBeforeExportProcess(uePickaxesPackagePath, ueProjectPath, ueExecutablePath, exportPickaxe.Name, exportPickaxe.Description,
+                exportPickaxe.Rarity, rarityComboBox.Items.Select(item => item as string).ToArray(), currentUeVersion, CurrentFnVersion)) return;
+                if (currentFnVersion.ManuallySwizzleMaterials) success =
+                (TextureSwizzler.SwizzleSpecularTextures(exportPickaxe.TexturesPath, exportPickaxe.Materials.Select(mat => mat.SelectedSpecular).ToArray()));
+                if (!success) return;
+
+                exportPickaxe.FbxPath = Path.Combine(exportPickaxe.SourcePath, "Fbx", "Meshes", $"SK_{exportPickaxe.Codename}.fbx");
+                if (!await FbxConverter.ConvertPskToFbx(exportPickaxe.PskPath, exportPickaxe.FbxPath)) return;
+
+                string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(ueProjectPath),
+                "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(ueProjectPath), "Content"); ;
+                string outputFnGamePath = Path.Combine(exportPickaxe.Path, "Output", currentFnVersion.Name, "FortniteGame");
+                string uePickaxesOsPath = uePickaxesPackagePath.Substring(6, uePickaxesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
+                string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
+                string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
+                string cookedExportPickaxePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, exportPickaxe.Codename);
+                string OutputFnGameExportEmoteFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
+
+                UnrealExportPickaxeData unrealData = UnrealExportDataCollector.CollectPickaxeData(exportPickaxe, uePickaxesPackagePath, currentUeVersion.Name);
+                if (unrealData == null) return;
+
+                if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedExportPickaxePath, currentUeVersion.Name,
+                currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
+
+                string jsonString = JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportPickaxeData);
+                await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "pickaxe");
+                if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
+                unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
+                exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath))
+                {
+                    Log.Error($"Unreal Engine import process failed!");
+                    return;
+                }
+
+                await UnrealProcessRunner.CookFiles(ueProjectPath, ueExecutablePath);
+
+                if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
+                unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
+                exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath, true))
+                {
+                    Log.Error($"Unreal Engine cook process failed!");
+                    return;
+                }
+
+                currentUeVersion.FixRequiredFiles([], [Path.Combine(cookedExportPickaxePath, "Meshes", $"{Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath)}.uexp")]);
+
+                AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, currentUeVersion.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath, uePickaxesPackagePath, 
+                exportPickaxe.Path);
             }
-
-            await UnrealProcessRunner.CookFiles(ueProjectPath, ueExecutablePath);
-
-            if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
-            unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
-            exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath, true))
+            catch (Exception ex)
             {
-                Log.Error($"Unreal Engine cook process failed!");
+                Log.Error($"An error occured in export button process {ex}");
                 return;
             }
         }

@@ -1,0 +1,33 @@
+{
+  "ObjectPath": "/Game/Athena/Items/Cosmetics/Pickaxes/Pickaxe_ID_094_Template.Pickaxe_ID_094_Template",
+  "PackagePath": "/Game/Athena/Items/Cosmetics/Pickaxes",
+  "AssetClass": "AthenaPickaxeItemDefinition",
+  "PackageName": "/Game/Athena/Items/Cosmetics/Pickaxes/Pickaxe_ID_094_Template",
+  "AssetName": "Pickaxe_ID_094_Template",
+  "TagAndValue": [
+    {
+      "Item1": "PrimaryAssetType",
+      "Item2": "AthenaPickaxe"
+    },
+    {
+      "Item1": "PrimaryAssetName",
+      "Item2": "Pickaxe_ID_094_Template"
+    },
+    {
+      "Item1": "DisplayName",
+      "Item2": "NSLOCTEXT(\"[D297826042F141C156984D8288A0B2CA]\", \"D7EB82BA409D77C91E0AF6AFC1A11004\", \"Upright Axe\")"
+    },
+    {
+      "Item1": "ItemType",
+      "Item2": "AthenaPickaxe"
+    },
+    {
+      "Item1": "bNeverPersisted",
+      "Item2": "False"
+    }
+  ],
+  "ChunkIDs": [
+    10
+  ],
+  "PackageTags": 262144
+}
