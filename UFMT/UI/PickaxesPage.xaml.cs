@@ -322,8 +322,14 @@ namespace UFMT.UI
             string cookedExportEmotePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, exportPickaxe.Codename);
             string OutputFnGameExportEmoteFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
 
+            UnrealExportPickaxeData unrealData = UnrealExportDataCollector.CollectPickaxeData(exportPickaxe, uePickaxesPackagePath, currentUeVersion.Name);
+            if (unrealData == null) return;
+
             if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedExportEmotePath, currentUeVersion.Name,
             currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
+
+            string jsonString = JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportPickaxeData);
+            await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "pickaxe");
         }
 
         private void UpdateDropdowns()

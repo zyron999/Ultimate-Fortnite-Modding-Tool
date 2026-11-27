@@ -13,12 +13,14 @@ namespace UFMT.UnrealEngine
     {
         private static string SkinPythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PythonScripts", "UE_Import_Skin.py").Replace("\\", "/");
         private static string EmotePythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PythonScripts", "UE_Import_Emote.py").Replace("\\", "/");
+        private static string PickaxePythonScriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "PythonScripts", "UE_Import_Pickaxe.py").Replace("\\", "/");
         internal static async Task LaunchUnreal(string unrealDataInJsonString, string ueProjectPath, string ueExecutablePath, string cosmeticType)
         {
             string tempJsonPath = Path.Combine(Path.GetTempPath(), "ue_import_data.json");
             File.WriteAllText(tempJsonPath, unrealDataInJsonString, new System.Text.UTF8Encoding(false));
 
             string scriptPath = cosmeticType == "skin" ? SkinPythonScriptPath : EmotePythonScriptPath;
+            if (cosmeticType == "pickaxe") scriptPath = PickaxePythonScriptPath;
             string arguments = $"\"{ueProjectPath}\" -run=PythonScriptCommandlet -script=\"{scriptPath}\" -NullRHI -NoWindow -Silent";
 
             Console.WriteLine($"Launching UE with args: {arguments}");

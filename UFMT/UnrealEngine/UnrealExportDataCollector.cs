@@ -116,5 +116,37 @@ namespace UFMT.UnrealEngine
                 return null;
             }
         }
+
+        internal static UnrealExportPickaxeData CollectPickaxeData(PickaxeData currentPickaxe, string uePackagePath, string unrealEngineVersion)
+        {
+            try
+            {
+                var unrealData = new UnrealExportPickaxeData()
+                {
+                    FbxPath = currentPickaxe.FbxPath,
+                    ImpactSoundWavPaths = currentPickaxe.ImpactSoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Impact", wav)).ToArray(),
+                    ReadySoundWavPaths = currentPickaxe.ReadySoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Ready", wav)).ToArray(),
+                    SwingSoundWavPaths = currentPickaxe.SwingSoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Swing", wav)).ToArray(),
+                    DiffuseTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedDiffuse}.png")).ToArray(),
+                    MaskTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedMask}.png")).ToArray(),
+                    NormalTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedNormal}.png")).ToArray(),
+                    SpecularTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedSpecular}.png")).ToArray(),
+                    IconTexturePaths = [Path.Combine(currentPickaxe.TexturesPath, $"{currentPickaxe.SmallIcon}.png"), 
+                    Path.Combine(currentPickaxe.TexturesPath, $"{currentPickaxe.LargeIcon}.png")],
+                    PhysicsJsonPaths = currentPickaxe.PhysicsAssetJsons.Select(json => Path.Combine(currentPickaxe.PhysicsPath, json)).ToArray(),
+                    Codename = currentPickaxe.Codename,
+                    PID = currentPickaxe.PID,
+                    UePickaxesPackagePath = uePackagePath,
+                    UnrealEngineVersion = unrealEngineVersion,
+                };
+
+                return unrealData;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"An error occured while trying to collect UnrealExportPickaxeData! {ex.Message}");
+                return null;
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using UAssetAPI;
 using UFMT.Core;
 
 namespace UFMT.UnrealEngine
@@ -14,21 +15,21 @@ namespace UFMT.UnrealEngine
         {
             try
             {
+                string ueProjectFolderPath = Path.GetDirectoryName(ueProjectPath);
                 Console.WriteLine("Adding and replacing required assets in Unreal Engine...");
-                string fakeCIDTemplatePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "CID_Template.uasset");
-                string BaseMeshSkeletonPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content",
+                string fakeCIDTemplatePath = Path.Combine(ueProjectFolderPath, "Content", "CID_Template.uasset");
+                string BaseMeshSkeletonPath = Path.Combine(ueProjectFolderPath, "Content",
                 "Characters", "Player", "Male", "Male_Avg_Base", "Fortnite_M_Avg_Player_Skeleton.uasset");
-                string BaseMeshPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content",
+                string BaseMeshPath = Path.Combine(ueProjectFolderPath, "Content",
                 "Characters", "Player", "Male", "Male_Avg_Base", "Fortnite_M_Avg_Player.uasset");
-                string baseHeadPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), ueBaseHeadPath);
-                string mediumLodSettingsFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings");
-                string mediumLodSettingsFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Characters", "Player", "Common", "LODSettings", "Medium_Player_LODSettings.uasset");
-                string accessoriesFolderPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories");
-                string accessoriesSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
-                string baseTailSkeletonFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "FORT_Tails", "Common",
+                string baseHeadPath = Path.Combine(ueProjectFolderPath, ueBaseHeadPath);
+                string mediumLodSettingsFilePath = Path.Combine(ueProjectFolderPath, "Content", "Characters", "Player", "Common", "LODSettings", "Medium_Player_LODSettings.uasset");
+                string accessoriesSkeletonFilePath = Path.Combine(ueProjectFolderPath, "Content", "Accessories", "Accessories_Skeleton_Basic.uasset");
+                string baseTailSkeletonFilePath = Path.Combine(ueProjectFolderPath, "Content", "Accessories", "FORT_Tails", "Common",
                 "Fortnite_Base_Tail_Skeleton.uasset");
-                string baseTailAnimBpFilePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", "Accessories", "FORT_Tails", "Common",
+                string baseTailAnimBpFilePath = Path.Combine(ueProjectFolderPath, "Content", "Accessories", "FORT_Tails", "Common",
                 "Fortnite_Base_Tail_AnimBP.uasset");
+                string skMeleeSkeletonFilePath = Path.Combine(ueProjectFolderPath, "Content", "Weapons", "FORT_Melee", "Meshes", "SK_Melee_Skeleton.uasset");
 
                 await AddOrReplaceUeAsset(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "FakeCID.uasset"));
                 await AddOrReplaceUeAsset(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
@@ -43,6 +44,7 @@ namespace UFMT.UnrealEngine
                 await AddOrReplaceUeAsset(accessoriesSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Accessories_Skeleton_Basic.uasset"));
                 await AddOrReplaceUeAsset(baseTailSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_Skeleton.uasset"));
                 await AddOrReplaceUeAsset(baseTailAnimBpFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_AnimBP.uasset"));
+                await AddOrReplaceUeAsset(skMeleeSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "SK_Melee_Skeleton.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
                 Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(pluginPath)}...");

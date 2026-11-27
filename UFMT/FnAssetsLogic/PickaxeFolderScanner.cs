@@ -7,7 +7,7 @@ namespace UFMT.FnAssetsLogic
 {
     internal class PickaxeFolderScanner
     {
-        internal static (bool success, string pskPath, string[] physicsAssetsJsonPaths) GetMeshData(string meshesPath, string physicsPath)
+        internal static (bool success, string pskPath, string[] physicsAssetsJsonNames) GetMeshData(string meshesPath, string physicsPath)
         {
             try
             {

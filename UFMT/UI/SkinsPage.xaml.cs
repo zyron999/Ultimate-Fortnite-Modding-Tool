@@ -1487,5 +1487,6 @@ namespace UFMT.UI
     [JsonSerializable(typeof(BlenderExportData))]
     [JsonSerializable(typeof(UnrealExportSkinData))]
     [JsonSerializable(typeof(UnrealExportEmoteData))]
+    [JsonSerializable(typeof(UnrealExportPickaxeData))]
     internal partial class AppJsonContext : JsonSerializerContext { }
 }
