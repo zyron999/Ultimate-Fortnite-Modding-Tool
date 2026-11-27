@@ -330,6 +330,23 @@ namespace UFMT.UI
 
             string jsonString = JsonSerializer.Serialize(unrealData, AppJsonContext.Default.UnrealExportPickaxeData);
             await UnrealProcessRunner.LaunchUnreal(jsonString, ueProjectPath, ueExecutablePath, "pickaxe");
+            if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
+            unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
+            exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath))
+            {
+                Log.Error($"Unreal Engine import process failed!");
+                return;
+            }
+
+            await UnrealProcessRunner.CookFiles(ueProjectPath, ueExecutablePath);
+
+            if (!PickaxeValidator.ValidateAfterUeProcess(ueProjectPath, uePickaxesOsPath, exportPickaxe.Codename, unrealData.DiffuseTexturePaths, unrealData.MaskTexturePaths,
+            unrealData.NormalTexturePaths, unrealData.SpecularTexturePaths, unrealData.MaterialNames.ToList(), Path.GetFileNameWithoutExtension(exportPickaxe.FbxPath),
+            exportPickaxe.SmallIcon, exportPickaxe.LargeIcon, unrealData.SoundWavPaths, exportPickaxe.PID, cookedAssetsPath, true))
+            {
+                Log.Error($"Unreal Engine cook process failed!");
+                return;
+            }
         }
 
         private void UpdateDropdowns()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UFMT.Core;
@@ -147,23 +148,39 @@ namespace UFMT.FnAssetsLogic
             return true;
         }
 
-        internal static bool ValidateAfterUeImport(string ueProjectPath, string uePickaxesOsPath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
+        internal static bool ValidateAfterUeProcess(string ueProjectPath, string uePickaxesOsPath, string codename, string[] diffuseTextures, string[] maskTextures,
+        string[] normalTextures, string[] specularTextures, List<string> materialNames, string mesh, string smallIcon, string largeIcon, List<string> allSoundWaves,
+        string pid, string cookedAssetsPath, bool validateAfterCook = false)
         {
+            // if a pickaxe had none material, don't check if it exists because ue materials cannot be none since that's a keyword
+            if (materialNames.Contains("None")) materialNames.Remove("None");
+            if (materialNames.Contains("none")) materialNames.Remove("none");
             string contentCurrentPickaxePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", uePickaxesOsPath, codename);
+            string cookedCurrentPickaxePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, codename);
             if (!Path.Exists(contentCurrentPickaxePath))
             {
                 Log.Error($"{contentCurrentPickaxePath} does not exist!");
                 return false;
             }
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMM", false)) return false;
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMf", false)) return false;
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Loop", false)) return false;
-            if (usesIntro && !FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Intro", false)) return false;
+            if (!Path.Exists(cookedCurrentPickaxePath) && validateAfterCook)
+            {
+                Log.Error($"{cookedCurrentPickaxePath} does not exist!");
+                return false;
+            }
+            string ueSearchPath = validateAfterCook ? cookedCurrentPickaxePath : contentCurrentPickaxePath;
 
-            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}", false)) return false;
-            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}-L", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(ueSearchPath, "Meshes"), mesh, validateAfterCook)) return false;
+            if (materialNames.Any(mat => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Materials"), mat, validateAfterCook))) return false;
+            if (diffuseTextures.Any(tex => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(tex), validateAfterCook))) return false;
+            if (maskTextures.Any(tex => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(tex), validateAfterCook))) return false;
+            if (normalTextures.Any(tex => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(tex), validateAfterCook))) return false;
+            if (specularTextures.Any(tex => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(tex), validateAfterCook))) return false;
+            if (allSoundWaves.Any(sound => !FindUeAssetFiles(Path.Combine(ueSearchPath, "Sounds"), Path.GetFileName(sound), validateAfterCook))) return false;
 
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath), eid, false)) return false;
+            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(smallIcon), validateAfterCook)) return false;
+            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(ueSearchPath, "Textures"), Path.GetFileName(largeIcon), validateAfterCook)) return false;
+
+            if (!FindUeAssetFiles(Path.Combine(ueSearchPath), pid, validateAfterCook)) return false;
             return true;
         }
 
