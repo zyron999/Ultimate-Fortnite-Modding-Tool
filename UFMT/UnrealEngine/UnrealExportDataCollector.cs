@@ -121,23 +121,25 @@ namespace UFMT.UnrealEngine
         {
             try
             {
+                List<string> allSoundWavPaths = new List<string>();
+                foreach (string soundWav in currentPickaxe.ImpactSoundWaves) allSoundWavPaths.Add(Path.Combine(currentPickaxe.SoundsPath, "Impact", soundWav));
+                foreach (string soundWav in currentPickaxe.ReadySoundWaves) allSoundWavPaths.Add(Path.Combine(currentPickaxe.SoundsPath, "Ready", soundWav));
+                foreach (string soundWav in currentPickaxe.SwingSoundWaves) allSoundWavPaths.Add(Path.Combine(currentPickaxe.SoundsPath, "Swing", soundWav));
                 var unrealData = new UnrealExportPickaxeData()
                 {
                     FbxPath = currentPickaxe.FbxPath,
-                    ImpactSoundWavPaths = currentPickaxe.ImpactSoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Impact", wav)).ToArray(),
-                    ReadySoundWavPaths = currentPickaxe.ReadySoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Ready", wav)).ToArray(),
-                    SwingSoundWavPaths = currentPickaxe.SwingSoundWaves.Select(wav => Path.Combine(currentPickaxe.SoundsPath, "Swing", wav)).ToArray(),
+                    SoundWavPaths = allSoundWavPaths,
                     DiffuseTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedDiffuse}.png")).ToArray(),
                     MaskTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedMask}.png")).ToArray(),
                     NormalTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedNormal}.png")).ToArray(),
                     SpecularTexturePaths = currentPickaxe.Materials.Select(mat => Path.Combine(currentPickaxe.TexturesPath, $"{mat.SelectedSpecular}.png")).ToArray(),
-                    IconTexturePaths = [Path.Combine(currentPickaxe.TexturesPath, $"{currentPickaxe.SmallIcon}.png"), 
+                    IconTexturePaths = [Path.Combine(currentPickaxe.TexturesPath, $"{currentPickaxe.SmallIcon}.png"),
                     Path.Combine(currentPickaxe.TexturesPath, $"{currentPickaxe.LargeIcon}.png")],
                     PhysicsJsonPaths = currentPickaxe.PhysicsAssetJsons.Select(json => Path.Combine(currentPickaxe.PhysicsPath, json)).ToArray(),
+                    MaterialNames = currentPickaxe.Materials.Select(mat => mat.Name).ToArray(),
                     Codename = currentPickaxe.Codename,
                     PID = currentPickaxe.PID,
                     UePickaxesPackagePath = uePackagePath,
-                    UnrealEngineVersion = unrealEngineVersion,
                 };
 
                 return unrealData;
