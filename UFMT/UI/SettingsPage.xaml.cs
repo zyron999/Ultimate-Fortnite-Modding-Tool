@@ -84,6 +84,7 @@ public class SettingsData : INotifyPropertyChanged
         _ueProjectPath = AppSettings.GetValue($"{UeVersion}_ProjectPath", "");
         _ueSkinsPackagePath = AppSettings.GetValue($"UeSkinsPackagePath", "/Game/CustomSkins");
         _ueEmotesPackagePath = AppSettings.GetValue($"UeEmotesPackagePath", "/Game/CustomEmotes");
+        _uePickaxesPackagePath = AppSettings.GetValue($"UePickaxesPackagePath", "/Game/CustomPickaxes");
     }
 
     private Dictionary<string, string[]> UeFnVersions = new()
@@ -209,6 +210,21 @@ public class SettingsData : INotifyPropertyChanged
             {
                 _ueEmotesPackagePath = value;
                 AppSettings.SetValue($"UeEmotesPackagePath", value);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string _uePickaxesPackagePath;
+    public string UePickaxesPackagePath
+    {
+        get => _uePickaxesPackagePath;
+        set
+        {
+            if (_uePickaxesPackagePath != value)
+            {
+                _uePickaxesPackagePath = value;
+                AppSettings.SetValue($"UePickaxesPackagePath", value);
                 OnPropertyChanged();
             }
         }

@@ -14,6 +14,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
+using UFMT.Blender;
 using UFMT.Core;
 using UFMT.FnAssets;
 using UFMT.FnAssetsLogic;
@@ -293,9 +294,36 @@ namespace UFMT.UI
             Log.Success($"Reimported {CurrentPickaxe.Codename}!");
         }
 
-        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        private async void ExportButton_Click(object sender, RoutedEventArgs e)
         {
+            PickaxeData exportPickaxe = CurrentPickaxe.Clone();
+            UeVersion currentUeVersion = CurrentUeVersion;
+            FnVersion currentFnVersion = CurrentFnVersion;
+            string ueProjectPath = App.Settings.UeProjectPath;
+            string ueExecutablePath = App.Settings.UeExecutablePath;
+            string uePickaxesPackagePath = App.Settings.UePickaxesPackagePath;
+            bool success = true;
 
+            if (!PickaxeValidator.ValidateBeforeExportProcess(uePickaxesPackagePath, ueProjectPath, ueExecutablePath, exportPickaxe.Name, exportPickaxe.Description,
+            exportPickaxe.Rarity, rarityComboBox.Items.Select(item => item as string).ToArray(), currentUeVersion, CurrentFnVersion)) return;
+            if (currentFnVersion.ManuallySwizzleMaterials) success = 
+            (TextureSwizzler.SwizzleSpecularTextures(exportPickaxe.TexturesPath, exportPickaxe.Materials.Select(mat => mat.SelectedSpecular).ToArray()));
+            if (!success) return;
+
+            exportPickaxe.FbxPath = Path.Combine(exportPickaxe.SourcePath, "Fbx", "Meshes", $"SK_{exportPickaxe.Codename}.fbx");
+            if (!await FbxConverter.ConvertPskToFbx(exportPickaxe.PskPath, exportPickaxe.FbxPath)) return;
+
+            string cookedAssetsPath = Path.Combine(Path.GetDirectoryName(ueProjectPath),
+            "Saved", "Cooked", "WindowsNoEditor", Path.GetFileNameWithoutExtension(ueProjectPath), "Content"); ;
+            string outputFnGamePath = Path.Combine(exportPickaxe.Path, "Output", currentFnVersion.Name, "FortniteGame");
+            string uePickaxesOsPath = uePickaxesPackagePath.Substring(6, uePickaxesPackagePath.Length - 6).Replace("/", "\\"); //Remove /Game/ at the start and replace / with \
+            string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
+            string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
+            string cookedExportEmotePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, exportPickaxe.Codename);
+            string OutputFnGameExportEmoteFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
+
+            if (!await UnrealDependencySetup.AddRequiredUeAssetsBeforeExport(ueProjectPath, currentUeVersion.BaseHeadPath, cookedExportEmotePath, currentUeVersion.Name,
+            currentUeVersion.BaseHeadFileNames, pluginPath, physicsImporterPath)) return;
         }
 
         private void UpdateDropdowns()
@@ -756,6 +784,8 @@ namespace UFMT.UI
         [JsonIgnore]
         public string PskPath { get; set; } = string.Empty;
         [JsonIgnore]
+        public string FbxPath { get; set; } = string.Empty;
+        [JsonIgnore]
         public string[] PhysicsAssetJsons { get; set; }
         [JsonIgnore]
         internal string[] ImpactSoundWaves { get; set; }
@@ -774,6 +804,7 @@ namespace UFMT.UI
         public PickaxeData Clone()
         {
             PickaxeData clone = (PickaxeData)this.MemberwiseClone();
+            clone.Materials = new ObservableCollection<PickaxeMaterial>(Materials.Select(m => m.Clone()));
             return clone;
         }
     }
@@ -891,9 +922,9 @@ namespace UFMT.UI
             if (!isLoading) ParentPage?.SavePickaxeConfig();
         }
 
-        public Material Clone()
+        public PickaxeMaterial Clone()
         {
-            return (Material)this.MemberwiseClone();
+            return (PickaxeMaterial)this.MemberwiseClone();
         }
     }
 }

@@ -327,7 +327,18 @@ namespace UFMT.UI
 
             if (!SkinValidator.ValidateBeforeExport
             (ueVer.Name, exportSkin.Gender, exportSkin.Name, exportSkin.Description, exportSkin.CID, ueSkinsPackagePath, ueProjectPath, ueExecutablePath)) return;
-            if (!await FbxConverter.ConvertPskToFbx(exportSkin.CharacterParts, exportSkin.SourcePath, exportSkin.Codename)) return;
+
+            foreach (CharacterPart cp in exportSkin.CharacterParts)
+            {
+                cp.FbxPath = Path.Combine(exportSkin.SourcePath, "Fbx", cp.Type, $"{exportSkin.Codename}_{cp.Type}");
+                if (!await FbxConverter.ConvertPskToFbx(cp.PskPath, $"{cp.FbxPath}.fbx")) return;
+                if (cp.Type == "Head")
+                {
+                    if (!await ShapeKeyCombiner.CombineShapeKeys($"{cp.FbxPath}.fbx")) return;
+                }
+            }
+
+
             SkinLobbyAnimationJsonEditor.RemoveControlExpressions(Path.Combine(exportSkin.LobbyAnimationFolderPath, $"{exportSkin.LobbyAnimationJson}.json"));
             if (fnVer.ManuallySwizzleMaterials) success = (TextureSwizzler.SwizzleSpecularTextures(exportSkin.TexturesPath, exportSkin.Materials.Select(mat => mat.SelectedSpecular).ToArray()));
             if (!success) return;

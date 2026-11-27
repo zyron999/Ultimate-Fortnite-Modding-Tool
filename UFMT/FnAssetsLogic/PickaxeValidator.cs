@@ -82,46 +82,7 @@ namespace UFMT.FnAssetsLogic
             return true;
         }
 
-        internal static bool ValidateAfterUeImport(string ueProjectPath, string uePickaxesOsPath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
-        {
-            string contentCurrentPickaxePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", uePickaxesOsPath, codename);
-            if (!Path.Exists(contentCurrentPickaxePath))
-            {
-                Log.Error($"{contentCurrentPickaxePath} does not exist!");
-                return false;
-            }
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMM", false)) return false;
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMf", false)) return false;
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Loop", false)) return false;
-            if (usesIntro && !FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Intro", false)) return false;
-
-            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}", false)) return false;
-            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}-L", false)) return false;
-
-            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath), eid, false)) return false;
-            return true;
-        }
-
-        internal static bool ValidateAfterUeCook(string cookedCurrentPickaxePath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
-        {
-            if (!Path.Exists(cookedCurrentPickaxePath))
-            {
-                Log.Error($"{cookedCurrentPickaxePath} does not exist!");
-                return false;
-            }
-            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMM", true)) return false;
-            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMf", true)) return false;
-            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Sound"), $"{codename}_Sound_Loop", true)) return false;
-            if (usesIntro && !FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Sound"), $"{codename}_Sound_Intro", true)) return false;
-
-            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}", true)) return false;
-            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}-L", true)) return false;
-
-            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath), eid, true)) return false;
-            return true;
-        }
-
-        internal static bool ValidateBeforeExportProcess(string uePickaxesPackagePath, string ueProjectPath, string ueExecutablePath, string name, string description, 
+        internal static bool ValidateBeforeExportProcess(string uePickaxesPackagePath, string ueProjectPath, string ueExecutablePath, string name, string description,
         string rarity, string[] validRarities, UeVersion ueVersion, FnVersion fnVersion)
         {
             if (!uePickaxesPackagePath.StartsWith("/Game/"))
@@ -183,6 +144,45 @@ namespace UFMT.FnAssetsLogic
                 Log.Error("Unreal Engine version was null!");
             }
 
+            return true;
+        }
+
+        internal static bool ValidateAfterUeImport(string ueProjectPath, string uePickaxesOsPath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
+        {
+            string contentCurrentPickaxePath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Content", uePickaxesOsPath, codename);
+            if (!Path.Exists(contentCurrentPickaxePath))
+            {
+                Log.Error($"{contentCurrentPickaxePath} does not exist!");
+                return false;
+            }
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMM", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMf", false)) return false;
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Loop", false)) return false;
+            if (usesIntro && !FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "Sound"), $"{codename}_Sound_Intro", false)) return false;
+
+            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}", false)) return false;
+            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}-L", false)) return false;
+
+            if (!FindUeAssetFiles(Path.Combine(contentCurrentPickaxePath), eid, false)) return false;
+            return true;
+        }
+
+        internal static bool ValidateAfterUeCook(string cookedCurrentPickaxePath, string codename, string smallIcon, string largeIcon, string eid, bool usesIntro)
+        {
+            if (!Path.Exists(cookedCurrentPickaxePath))
+            {
+                Log.Error($"{cookedCurrentPickaxePath} does not exist!");
+                return false;
+            }
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMM", true)) return false;
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Animations"), $"Pickaxe_{codename}_CMf", true)) return false;
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Sound"), $"{codename}_Sound_Loop", true)) return false;
+            if (usesIntro && !FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "Sound"), $"{codename}_Sound_Intro", true)) return false;
+
+            if (smallIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}", true)) return false;
+            if (largeIcon != string.Empty) if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath, "UI"), $"T-Icon-Pickaxes-E-{codename}-L", true)) return false;
+
+            if (!FindUeAssetFiles(Path.Combine(cookedCurrentPickaxePath), eid, true)) return false;
             return true;
         }
 

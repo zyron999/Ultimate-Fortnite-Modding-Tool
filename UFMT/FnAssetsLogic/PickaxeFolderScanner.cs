@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UFMT.Core;
-using UFMT.FnAssets;
-using Windows.ApplicationModel.Store;
 
 namespace UFMT.FnAssetsLogic
 {
@@ -68,6 +63,20 @@ namespace UFMT.FnAssetsLogic
                 string[] impactSoundWaves = Directory.GetFiles(impactSoundsPath, "*.wav").Select(wav => Path.GetFileName(wav)).ToArray();
                 string[] readySoundWaves = Directory.GetFiles(readySoundsPath, "*.wav").Select(wav => Path.GetFileName(wav)).ToArray();
                 string[] swingSoundWaves = Directory.GetFiles(swingSoundsPath, "*.wav").Select(wav => Path.GetFileName(wav)).ToArray();
+
+                if (impactSoundWaves.Count() == 0)
+                {
+                    Log.Error($"'{impactSoundsPath}' does not have any .wav files");
+                    return (false, null, null, null);
+                }
+
+                if (swingSoundWaves.Count() == 0)
+                {
+                    Log.Error($"'{swingSoundsPath}' does not have any .wav files");
+                    return (false, null, null, null);
+                }
+
+                if (readySoundWaves.Count() == 0) Log.Warning($"'{readySoundsPath}' does not have any .wav files, swing sounds will be used for ready sounds instead");
 
                 return (true, impactSoundWaves, readySoundWaves, swingSoundWaves);
             }
