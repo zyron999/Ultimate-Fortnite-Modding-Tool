@@ -30,6 +30,7 @@ namespace UFMT.UnrealEngine
                 string baseTailAnimBpFilePath = Path.Combine(ueProjectFolderPath, "Content", "Accessories", "FORT_Tails", "Common",
                 "Fortnite_Base_Tail_AnimBP.uasset");
                 string skMeleeSkeletonFilePath = Path.Combine(ueProjectFolderPath, "Content", "Weapons", "FORT_Melee", "Meshes", "SK_Melee_Skeleton.uasset");
+                string pickaxeLodSettingsFilePath = Path.Combine(ueProjectFolderPath, "Content", "Characters", "Player", "Common", "LODSettings", "Pickaxe_LODSettings.uasset");
 
                 await AddOrReplaceUeAsset(fakeCIDTemplatePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "FakeCID.uasset"));
                 await AddOrReplaceUeAsset(BaseMeshSkeletonPath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "BaseMeshSkeleton.uasset"));
@@ -45,6 +46,7 @@ namespace UFMT.UnrealEngine
                 await AddOrReplaceUeAsset(baseTailSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_Skeleton.uasset"));
                 await AddOrReplaceUeAsset(baseTailAnimBpFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Fortnite_Base_Tail_AnimBP.uasset"));
                 await AddOrReplaceUeAsset(skMeleeSkeletonFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "SK_Melee_Skeleton.uasset"));
+                await AddOrReplaceUeAsset(pickaxeLodSettingsFilePath, TemplateLoader.GetEmbeddedFile(ueVersionNumber, "RawUeAssets", "Pickaxe_LODSettings.uasset"));
 
                 if (Directory.Exists(pluginPath)) Directory.Delete(pluginPath, true);
                 Console.WriteLine($"Adding/Replacing {Path.GetFileNameWithoutExtension(pluginPath)}...");
