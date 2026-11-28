@@ -20,6 +20,7 @@ using UFMT.Core;
 using UFMT.FnAssets;
 using UFMT.FnAssetsLogic;
 using UFMT.MaterialTextureAssignment;
+using UFMT.u4Pak;
 using UFMT.UnrealEngine;
 using Windows.Foundation.Collections;
 
@@ -325,7 +326,7 @@ namespace UFMT.UI
                 string pluginPath = Path.Combine(Path.GetDirectoryName(ueProjectPath), "Plugins", "PhysicsImporter");
                 string physicsImporterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", $"PhysicsImporter_{currentUeVersion.Name}.zip");
                 string cookedExportPickaxePath = Path.Combine(cookedAssetsPath, uePickaxesOsPath, exportPickaxe.Codename);
-                string OutputFnGameExportEmoteFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
+                string OutputFnGameExportPickaxeFolder = Path.Combine(outputFnGamePath, "Content", uePickaxesOsPath, exportPickaxe.Codename);
 
                 UnrealExportPickaxeData unrealData = UnrealExportDataCollector.CollectPickaxeData(exportPickaxe, uePickaxesPackagePath, currentUeVersion.Name);
                 if (unrealData == null) return;
@@ -357,10 +358,32 @@ namespace UFMT.UI
 
                 AssetRegistryBuilder.CreateAssetRegistry(cookedAssetsPath, currentUeVersion.Name, outputFnGamePath, ueSkinsPackagePath, ueEmotesPackagePath, uePickaxesPackagePath, 
                 exportPickaxe.Path);
+                PickaxeAssetCreator.CopyFilesFromUe(OutputFnGameExportPickaxeFolder, new DirectoryInfo(cookedExportPickaxePath));
+
+                PickaxeAssetCreator.CreateMaterials(OutputFnGameExportPickaxeFolder, exportPickaxe.Codename, exportPickaxe.Materials, currentFnVersion,
+                currentUeVersion.UassetApiEngineVer, uePickaxesPackagePath);
+
+                PickaxeAssetCreator.CreateImpactSoundCue(OutputFnGameExportPickaxeFolder, exportPickaxe.Codename, exportPickaxe.ImpactSoundWaves, currentFnVersion,
+                currentUeVersion.UassetApiEngineVer, uePickaxesPackagePath);
+
+                PickaxeAssetCreator.CreateReadyAndSwingSoundCues(OutputFnGameExportPickaxeFolder, exportPickaxe.Codename, exportPickaxe.ReadySoundWaves,
+                exportPickaxe.SwingSoundWaves, currentFnVersion, currentUeVersion.UassetApiEngineVer, uePickaxesPackagePath);
+
+                PickaxeAssetCreator.CreateBMeleeImpact(outputFnGamePath, exportPickaxe.Codename, currentFnVersion, currentUeVersion.UassetApiEngineVer, uePickaxesPackagePath);
+
+                PickaxeAssetCreator.CreateWid(outputFnGamePath, exportPickaxe.Codename, currentFnVersion, currentUeVersion.UassetApiEngineVer, uePickaxesPackagePath,
+                CurrentPickaxe.SmallIcon, CurrentPickaxe.LargeIcon, CurrentPickaxe.Rarity, CurrentPickaxe.Series);
+
+                PickaxeAssetCreator.CreatePid(outputFnGamePath, exportPickaxe.PID, exportPickaxe.Codename, exportPickaxe.Name, exportPickaxe.Description,
+                exportPickaxe.Rarity, exportPickaxe.Series, currentFnVersion, currentUeVersion.UassetApiEngineVer);
+
+                U4Pak.Pack(outputFnGamePath, Path.Combine(Path.GetDirectoryName(outputFnGamePath), $"z_{exportPickaxe.Codename}.pak"));
+                Log.Success("\nYour custom pickaxe is ready! Check the output folder");
+
             }
             catch (Exception ex)
             {
-                Log.Error($"An error occured in export button process {ex}");
+                Log.Error($"An error occured in export button process {ex.Message}");
                 return;
             }
         }
